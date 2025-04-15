@@ -1,0 +1,43 @@
+@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles */
+@layer base {
+  body {
+    @apply bg-gray-50 text-wine-dark;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-semibold;
+  }
+}
+
+/* Custom component styles */
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded font-medium transition-colors;
+  }
+
+  .btn-primary {
+    @apply bg-wine-red text-white hover:bg-opacity-90;
+  }
+
+  .btn-secondary {
+    @apply bg-wine-gold text-wine-dark hover:bg-opacity-90;
+  }
+
+  .btn-outline {
+    @apply border border-wine-red text-wine-red hover:bg-wine-red hover:text-white;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-100 p-4;
+  }
+}
