@@ -1,43 +1,28 @@
+/* src/index.css */
 @import 'tailwindcss';
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
-/* Custom base styles */
-@layer base {
-  body {
-    @apply bg-gray-50 text-wine-dark;
-  }
+@theme {
+  /* Wine color palette */
+  --wine-50: 252 247 248;
+  --wine-100: 248 239 241;
+  --wine-200: 239 214 221;
+  --wine-300: 229 189 201;
+  --wine-400: 210 140 161;
+  --wine-500: 191 91 120;
+  --wine-600: 172 41 90;
+  --wine-700: 142 31 74;
+  --wine-800: 112 26 58;
+  --wine-900: 91 21 47;
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply font-semibold;
-  }
-}
-
-/* Custom component styles */
-@layer components {
-  .btn {
-    @apply px-4 py-2 rounded font-medium transition-colors;
-  }
-
-  .btn-primary {
-    @apply bg-wine-red text-white hover:bg-opacity-90;
-  }
-
-  .btn-secondary {
-    @apply bg-wine-gold text-wine-dark hover:bg-opacity-90;
-  }
-
-  .btn-outline {
-    @apply border border-wine-red text-wine-red hover:bg-wine-red hover:text-white;
-  }
-
-  .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-100 p-4;
-  }
+  /* Cream color palette */
+  --cream-50: 255 253 245;
+  --cream-100: 255 251 235;
+  --cream-200: 254 243 205;
+  --cream-300: 253 234 175;
+  --cream-400: 251 217 115;
+  --cream-500: 249 201 55;
+  --cream-600: 224 180 50;
+  --cream-700: 187 151 42;
+  --cream-800: 149 121 34;
+  --cream-900: 122 99 28;
 }
