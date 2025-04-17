@@ -1,6 +1,7 @@
 // import { useState, useEffect } from 'react'
 import type { JSX } from 'react'
 import './Dashboard.css'
+import WorldMap from '../../components/visualizations/map/WorldMap.js'
 
 /**
  * Dashboard page component - will contain the visualizations
@@ -22,9 +23,12 @@ function Dashboard(): JSX.Element {
           <li>Grape popularity</li>
           <li>Comparison of wine types</li>
         </ul>
+        <WorldMap />
       </div>
     </div>
   )
 }
 
 export default Dashboard
+
+// TODO: Change text here when done

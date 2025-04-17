@@ -10,11 +10,11 @@ function Home(): JSX.Element {
   return (
     <div className="home-container">
       <section className="hero-section">
-        <h1 className="hero-title">Discover the World of Wine</h1>
+        <h1 className="hero-title">Explore 130,000 Wine Reviews</h1>
         <p className="hero-description">
-          Explore our comprehensive database with over a thousand different
-          wines. Filter, visualize, and gain insights about wines from around
-          the world.
+          Dive into a curated collection of global wine reviews. Analyze trends
+          in ratings, prices, grape varieties, and wine regions through
+          interactive visualizations.
         </p>
         <img
           src="/images/barrels_basement.jpg"
@@ -22,27 +22,29 @@ function Home(): JSX.Element {
           className="hero-image"
         />
         <Link to="/dashboard" className="cta-button">
-          Explore Data
+          Start Exploring
         </Link>
       </section>
 
       <section className="features-section">
         <div className="feature-card">
-          <h2 className="feature-title">Interactive Visualizations</h2>
+          <h2 className="feature-title">Data-Driven Insights</h2>
           <p className="feature-text">
-            Explore wines through interactive charts and graphics.
+            Discover patterns in wine ratings, price distributions, and reviewer
+            preferences.
           </p>
         </div>
         <div className="feature-card">
-          <h2 className="feature-title">Global Database</h2>
+          <h2 className="feature-title">Global Coverage</h2>
           <p className="feature-text">
-            Access data about wines from around the world.
+            Analyze wines from top-producing countries and famous wine regions.
           </p>
         </div>
         <div className="feature-card">
-          <h2 className="feature-title">Advanced Filtering</h2>
+          <h2 className="feature-title">Smart Filtering</h2>
           <p className="feature-text">
-            Filter by grape, country, price, and much more.
+            Filter wines by country, grape variety, points, and price to tailor
+            your view.
           </p>
         </div>
       </section>
