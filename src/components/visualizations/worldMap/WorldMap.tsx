@@ -125,6 +125,7 @@ const WorldMap: React.FC<WorldMapProps> = ({
         wineCount: country.count,
         avgPrice: country.avg_price,
         varieties: country.top_varieties,
+        originalName: country.original_country,
       }))
 
       // Create map options

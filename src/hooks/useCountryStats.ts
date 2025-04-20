@@ -15,6 +15,7 @@ interface CountryStats {
   max_price: number | null
   avg_price: number | null
   top_varieties: VarietyInfo[]
+  original_country: string
 }
 
 interface CountryStatsResponse {
