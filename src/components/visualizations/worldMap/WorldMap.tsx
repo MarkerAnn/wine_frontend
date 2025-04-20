@@ -58,13 +58,21 @@ interface EChartsOption {
   }>
 }
 
+interface WorldMapProps {
+  selectedCountry: string | null
+  onCountrySelect: (country: string) => void
+}
+
 /**
  * WorldMap component that displays an interactive world map visualization
  * for wine data using Apache ECharts.
  *
  * @returns {JSX.Element} The WorldMap component
  */
-const WorldMap = () => {
+const WorldMap: React.FC<WorldMapProps> = ({
+  selectedCountry,
+  onCountrySelect,
+}) => {
   // Initialize mapOptions as null with proper type
   const [mapOptions, setMapOptions] = useState<EChartsOption | null>(null)
   // Use our custom hook to fetch country stats

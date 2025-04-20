@@ -1,113 +1,154 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import ReactECharts from 'echarts-for-react'
-import { PriceRatingDataPoint } from '../../../hooks/usePriceRatingData.js'
 import type { ECElementEvent } from 'echarts'
+import { BucketInfo } from '../../../hooks/useHeatmapData'
+import { BucketWineList } from '../../BucketWineList'
 import './PriceRatingScatter.css'
 
-interface ScatterDataPoint extends Array<number> {
-  0: number // price
-  1: number // points
-  2: number // id
-}
-
 interface PriceRatingScatterProps {
-  data: PriceRatingDataPoint[]
+  data: {
+    data: number[][]
+    x_categories: number[]
+    y_categories: number[]
+    bucket_map: { [key: string]: BucketInfo }
+    max_count: number
+    total_wines: number
+    bucket_size: {
+      price: number
+      points: number
+    }
+  } | null
   loading: boolean
-  onPointClick?: (dataPoint: PriceRatingDataPoint) => void
+  onPointClick?: (bucket: BucketInfo) => void
 }
 
 /**
- * Scatterplot component for visualizing wine price vs rating
+ * Heatmap component for visualizing wine price vs rating data
+ * Optimized to work with server-processed data formats
  */
 const PriceRatingScatter: React.FC<PriceRatingScatterProps> = ({
   data,
   loading,
   onPointClick,
 }) => {
-  const safeData = useMemo(() => data ?? [], [data])
+  // State för att hålla koll på vald bucket
+  const [selectedBucket, setSelectedBucket] = useState<BucketInfo | null>(null)
 
-  // Prepare chart options with our data
+  // Prepare chart options using the pre-formatted data
   const options = useMemo(() => {
-    // Create a list of unique countries, uses set to avoid duplicates
-    const countries = Array.from(new Set(safeData.map((item) => item.country)))
-
-    const series = countries.map((country) => {
-      const countryData = safeData
-        .filter((item) => item.country === country)
-        .map((item) => [item.price, item.points, item.id]) // [x, y, id]
-
-      return {
-        name: country,
-        type: 'scatter',
-        data: countryData,
-        symbolSize: 8,
-        itemStyle: {
-          opacity: 0.6,
-        },
-        emphasis: {
-          focus: 'series',
-          itemStyle: {
-            opacity: 1,
-            shadowBlur: 10,
-            shadowOffsetX: 0,
-            shadowColor: 'rgba(0, 0, 0, 0.5)',
-          },
-        },
-      }
-    })
+    if (
+      !data?.data?.length ||
+      !data.x_categories?.length ||
+      !data.y_categories?.length
+    ) {
+      return {}
+    }
 
     return {
       title: {
-        text: 'Wine Price vs. Rating',
+        text: 'Vinpris vs. Betygsfördelning',
         left: 'center',
+        top: 10,
       },
       tooltip: {
         trigger: 'item',
         formatter: function (params: ECElementEvent) {
           if (!params.data || !Array.isArray(params.data)) return ''
-          const data = params.data as ScatterDataPoint
-          const dataPoint = safeData.find((item) => item.id === data[2])
-          if (!dataPoint) return ''
 
-          return `
-            <strong>${dataPoint.winery}</strong><br/>
-            Country: ${dataPoint.country}<br/>
-            Variety: ${dataPoint.variety}<br/>
-            Price: $${dataPoint.price}<br/>
-            Rating: ${dataPoint.points} points
+          const [xIndex, yIndex, count] = params.data as [
+            number,
+            number,
+            number,
+          ]
+
+          // Get the original values from categories
+          const priceMin = data.x_categories[xIndex]
+          const pointsMin = data.y_categories[yIndex]
+
+          // Look up the original bucket
+          const key = `${priceMin}-${pointsMin}`
+          const bucket = data.bucket_map[key]
+
+          if (!bucket) {
+            return `Pris: $${priceMin}<br/>Betyg: ${pointsMin}<br/>Antal viner: ${count}`
+          }
+
+          let html = `
+            <div style="font-weight:bold;margin-bottom:5px">
+              Pris: $${bucket.price_min.toFixed(0)} - $${bucket.price_max.toFixed(0)}<br/>
+              Betyg: ${bucket.points_min} - ${bucket.points_max} poäng
+            </div>
+            <div>Antal viner: <b>${bucket.count}</b></div>
           `
+
+          if (bucket.examples && bucket.examples.length > 0) {
+            html +=
+              '<div style="margin-top:8px;border-top:1px solid #eee;padding-top:8px;"><b>Exempelviner:</b></div>'
+            bucket.examples.forEach((example) => {
+              html += `
+                <div style="margin-top:5px;padding-top:3px;">
+                  <b>${example.name || 'Okänt vin'}</b><br/>
+                  ${example.winery || 'Okänt vineri'}<br/>
+                  $${example.price.toFixed(2)} | ${example.points} poäng
+                </div>
+              `
+            })
+          }
+
+          return html
         },
-      },
-      legend: {
-        type: 'scroll',
-        orient: 'horizontal',
-        bottom: 0,
-        left: 'center',
-        padding: [10, 0],
       },
       grid: {
         left: '5%',
-        right: '5%',
-        bottom: '15%',
+        right: '8%',
+        bottom: '25%',
         top: '15%',
         containLabel: true,
       },
       xAxis: {
-        type: 'value',
-        name: 'Price (USD)',
+        type: 'category',
+        data: data.x_categories,
+        name: 'Pris (USD)',
         nameLocation: 'middle',
-        nameGap: 30,
+        nameGap: 35,
         axisLabel: {
-          formatter: '${value}',
+          formatter: (value: number) => `$${value}`,
+          rotate: 45,
         },
       },
       yAxis: {
-        type: 'value',
-        name: 'Rating (points)',
+        type: 'category',
+        data: data.y_categories,
+        name: 'Betyg (poäng)',
         nameLocation: 'middle',
-        nameGap: 30,
-        min: 80,
-        max: 100,
+        nameGap: 45,
+      },
+      visualMap: {
+        min: 0,
+        max: data.max_count,
+        calculable: true,
+        orient: 'horizontal',
+        left: 'center',
+        bottom: '12%',
+        itemWidth: 15,
+        itemHeight: 100,
+        inRange: {
+          color: [
+            '#313695',
+            '#4575b4',
+            '#74add1',
+            '#abd9e9',
+            '#fee090',
+            '#fdae61',
+            '#f46d43',
+            '#d73027',
+            '#a50026',
+          ],
+        },
+        text: ['Hög densitet', 'Låg densitet'],
+        textStyle: {
+          fontSize: 12,
+        },
       },
       dataZoom: [
         {
@@ -120,34 +161,126 @@ const PriceRatingScatter: React.FC<PriceRatingScatterProps> = ({
           yAxisIndex: 0,
           filterMode: 'filter',
         },
+        {
+          type: 'slider',
+          xAxisIndex: 0,
+          bottom: '5%',
+          height: 20,
+          start: 0,
+          end: 40,
+          borderColor: '#ccc',
+          textStyle: {
+            color: '#666',
+            fontSize: 11,
+          },
+          handleStyle: {
+            color: '#666',
+          },
+          moveHandleStyle: {
+            color: '#666',
+          },
+          emphasis: {
+            handleStyle: {
+              borderColor: '#999',
+            },
+          },
+          labelFormatter: (value: number) => {
+            const price = data.x_categories[value]?.toFixed(0) || value
+            return `$${price}`
+          },
+          showDetail: true,
+          right: '8%',
+          left: '8%',
+          textGap: 10,
+        },
       ],
-      series,
+      series: [
+        {
+          name: 'Vinfördelning',
+          type: 'heatmap',
+          data: data.data,
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: 'rgba(0, 0, 0, 0.5)',
+            },
+          },
+          label: {
+            show: false,
+          },
+          itemStyle: {
+            opacity: 0.8,
+          },
+          silent: false,
+        },
+      ],
     }
-  }, [safeData])
+  }, [data])
 
   // Handle click events
   const onChartClick = (params: ECElementEvent) => {
-    if (!onPointClick || !params.data || !Array.isArray(params.data)) return
-    const data = params.data as ScatterDataPoint
-    const id = data[2]
-    const dataPoint = safeData.find((item) => item.id === id)
-    if (dataPoint) {
-      onPointClick(dataPoint)
+    console.log('Click event:', params)
+
+    if (!data?.data?.length || !params.data || !Array.isArray(params.data)) {
+      console.log('Early return due to invalid data:', {
+        hasData: !!data?.data?.length,
+        hasParamsData: !!params.data,
+        isArray: Array.isArray(params.data),
+      })
+      return
+    }
+
+    const [xIndex, yIndex] = params.data as [number, number, number]
+    console.log('Indices:', { xIndex, yIndex })
+
+    // Get the original values from categories
+    const priceMin = data.x_categories[xIndex]
+    const pointsMin = data.y_categories[yIndex]
+    console.log('Values:', { priceMin, pointsMin })
+
+    // Look up the original bucket only if we have valid indices
+    if (typeof priceMin === 'number' && typeof pointsMin === 'number') {
+      // Matcha exakt format från backend: "X.0-Y"
+      const key = `${priceMin.toFixed(1)}-${pointsMin}`
+      console.log('Looking for key:', key)
+
+      const bucket = data.bucket_map[key]
+
+      if (bucket) {
+        console.log('Found bucket:', bucket)
+        setSelectedBucket(bucket)
+        if (onPointClick) {
+          onPointClick(bucket)
+        }
+      } else {
+        console.log('No bucket found for key:', key)
+        console.log(
+          'Available keys near this value:',
+          Object.keys(data.bucket_map)
+            .filter((k) => k.includes(`${Math.floor(priceMin)}`))
+            .slice(0, 5)
+        )
+      }
     }
   }
+
+  // Lägg till useEffect för att övervaka selectedBucket
+  useEffect(() => {
+    console.log('selectedBucket changed:', selectedBucket)
+  }, [selectedBucket])
 
   if (loading) {
     return (
       <div className="flex h-96 items-center justify-center rounded-lg bg-gray-50 text-gray-500 italic">
-        Loading data...
+        Laddar vindata...
       </div>
     )
   }
 
-  if (safeData.length === 0) {
+  if (!data?.data?.length) {
     return (
       <div className="flex h-96 items-center justify-center rounded-lg bg-gray-50 text-gray-500 italic">
-        No data available
+        Ingen data tillgänglig. Försök ändra filter.
       </div>
     )
   }
@@ -160,7 +293,19 @@ const PriceRatingScatter: React.FC<PriceRatingScatterProps> = ({
         onEvents={{
           click: onChartClick,
         }}
+        notMerge={true}
       />
+      <div className="mt-2 text-center text-sm text-gray-500">
+        Totalt antal viner: {data.total_wines}
+      </div>
+
+      {/* Visa BucketWineList när en bucket är vald */}
+      {selectedBucket && (
+        <BucketWineList
+          bucket={selectedBucket}
+          onClose={() => setSelectedBucket(null)}
+        />
+      )}
     </div>
   )
 }

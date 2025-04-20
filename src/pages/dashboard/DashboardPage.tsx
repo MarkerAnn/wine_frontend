@@ -3,7 +3,7 @@ import type { JSX } from 'react'
 import './DashboardPage.css'
 import WorldMap from '../../components/visualizations/worldMap/WorldMap.js'
 import PriceRatingScatter from '../../components/visualizations/priceRatingScatter/PriceRatingScatter.js'
-import { usePriceRatingData } from '../../hooks/usePriceRatingData'
+import { useHeatmapData } from '../../hooks/useHeatmapData.js'
 
 function DashboardPage(): JSX.Element {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null)
@@ -12,7 +12,8 @@ function DashboardPage(): JSX.Element {
   const filters = useMemo(
     () => ({
       country: selectedCountry || undefined,
-      pageSize: 1000,
+      priceBucketSize: 10, // Default bucket size for price
+      pointsBucketSize: 1, // Default bucket size for points
     }),
     [selectedCountry]
   )
@@ -21,7 +22,7 @@ function DashboardPage(): JSX.Element {
     data: priceRatingData,
     loading: loadingScatter,
     error,
-  } = usePriceRatingData(filters)
+  } = useHeatmapData(filters)
 
   const handleCountrySelect = (country: string) => {
     setSelectedCountry((prev) => (prev === country ? null : country))
@@ -60,7 +61,11 @@ function DashboardPage(): JSX.Element {
 
         <div className="visualization-card">
           <h2 className="visualization-title">Price vs. Rating Analysis</h2>
-          <PriceRatingScatter data={priceRatingData} loading={loadingScatter} />
+          <PriceRatingScatter
+            data={priceRatingData}
+            loading={loadingScatter}
+            onPointClick={(bucket) => console.log('Clicked bucket:', bucket)}
+          />
         </div>
       </div>
 

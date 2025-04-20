@@ -9,7 +9,7 @@ export interface WineExample {
   winery: string
 }
 
-export interface PriceRatingBucket {
+export interface BucketInfo {
   price_min: number
   price_max: number
   points_min: number
@@ -18,8 +18,12 @@ export interface PriceRatingBucket {
   examples: WineExample[]
 }
 
-export interface AggregatedPriceRatingResponse {
-  buckets: PriceRatingBucket[]
+export interface HeatmapData {
+  data: number[][] // [x_index, y_index, value]
+  x_categories: number[]
+  y_categories: number[]
+  bucket_map: { [key: string]: BucketInfo }
+  max_count: number
   total_wines: number
   bucket_size: {
     price: number
@@ -27,7 +31,7 @@ export interface AggregatedPriceRatingResponse {
   }
 }
 
-export interface PriceRatingFilters {
+export interface HeatmapFilters {
   country?: string
   variety?: string
   minPrice?: number
@@ -42,20 +46,13 @@ export interface PriceRatingFilters {
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 /**
- * Custom hook to fetch aggregated price vs rating data for the scatterplot
+ * Custom hook to fetch pre-formatted heatmap data optimized for ECharts visualization
+ * Uses server-side processing to reduce client-side computation and network load
  */
-export const usePriceRatingData = (filters: PriceRatingFilters = {}) => {
-  const [data, setData] = useState<PriceRatingBucket[]>([])
+export const useHeatmapData = (filters: HeatmapFilters = {}) => {
+  const [data, setData] = useState<HeatmapData | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
-  const [total, setTotal] = useState<number>(0)
-  const [bucketSize, setBucketSize] = useState<{
-    price: number
-    points: number
-  }>({
-    price: 10,
-    points: 1,
-  })
 
   useEffect(() => {
     const fetchData = async () => {
@@ -81,18 +78,16 @@ export const usePriceRatingData = (filters: PriceRatingFilters = {}) => {
             filters.pointsBucketSize.toString()
           )
 
-        const response = await axios.get<AggregatedPriceRatingResponse>(
-          `${apiUrl}/api/stats/price-rating-aggregated?${params.toString()}`
+        const response = await axios.get<HeatmapData>(
+          `${apiUrl}/api/stats/price-rating-heatmap?${params.toString()}`
         )
 
-        setData(response.data.buckets)
-        setTotal(response.data.total_wines)
-        setBucketSize(response.data.bucket_size)
+        setData(response.data)
         setError(null)
       } catch (err) {
-        console.error('Error fetching price rating data:', err)
-        setError('Failed to load data')
-        setData([])
+        console.error('Error fetching heatmap data:', err)
+        setError('Failed to load heatmap data')
+        setData(null)
       } finally {
         setLoading(false)
       }
@@ -101,5 +96,5 @@ export const usePriceRatingData = (filters: PriceRatingFilters = {}) => {
     fetchData()
   }, [filters])
 
-  return { data, loading, error, total, bucketSize }
+  return { data, loading, error }
 }
