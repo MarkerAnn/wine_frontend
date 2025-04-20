@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import ReactECharts from 'echarts-for-react'
 import * as echarts from 'echarts'
-import useCountryStats from '../../../hooks/useCountryStats.js'
+import { useCountryStats } from '../../../hooks/useCountryStats.js'
 import './WorldMap.css'
 
 // Define interfaces for ECharts options

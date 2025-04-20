@@ -29,6 +29,9 @@ export interface PriceRatingFilters {
   pageSize?: number
 }
 
+// Extract API base URL
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 /**
  * Custom hook to fetch price vs rating data for the scatterplot
  */
@@ -57,9 +60,8 @@ export const usePriceRatingData = (filters: PriceRatingFilters = {}) => {
         params.append('page', (filters.page || 1).toString())
         params.append('page_size', (filters.pageSize || 1000).toString())
 
-        // Make API request
         const response = await axios.get<PriceRatingResponse>(
-          `/api/stats/price-rating?${params.toString()}`
+          `${apiUrl}/api/stats/price-rating?${params.toString()}`
         )
 
         setData(response.data.data)
@@ -75,7 +77,7 @@ export const usePriceRatingData = (filters: PriceRatingFilters = {}) => {
     }
 
     fetchData()
-  }, [filters]) // Re-fetch when filters change
+  }, [filters])
 
   return { data, loading, error, total }
 }

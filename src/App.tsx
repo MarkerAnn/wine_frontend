@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import type { JSX } from 'react'
 import Home from './pages/home/Home.js'
-import Dashboard from './pages/dashboard/Dashboard.js'
+import Dashboard from './pages/dashboard/DashboardPage.js'
 import Navbar from './components/navbar/Navbar.js'
 import Footer from './components/footer/Footer.js'
 import './App.css'

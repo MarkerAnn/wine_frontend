@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 
-// Define interfaces for the data structure
 interface VarietyInfo {
   name: string
   count: number
@@ -29,7 +28,7 @@ interface CountryStatsResponse {
  * @param {number} minWines - Minimum number of wines per country to include
  * @returns {Object} - Object containing countryStats data, loading state, and error
  */
-const useCountryStats = (
+export const useCountryStats = (
   minWines = 50
 ): {
   countryStats: CountryStats[]
@@ -62,5 +61,3 @@ const useCountryStats = (
 
   return { countryStats, loading, error }
 }
-
-export default useCountryStats
