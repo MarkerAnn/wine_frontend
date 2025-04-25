@@ -18,6 +18,16 @@ interface MapDataItem {
   }>
 }
 
+interface TooltipParams {
+  name: string
+  data: MapDataItem
+}
+
+interface WorldMapProps {
+  selectedCountry: string | null
+  onCountrySelect: (country: string) => void
+}
+
 interface EChartsOption {
   backgroundColor: string
   title?: {
@@ -29,7 +39,7 @@ interface EChartsOption {
   }
   tooltip: {
     trigger: string
-    formatter: (params: any) => string | HTMLElement
+    formatter: (params: TooltipParams) => string | HTMLElement
   }
   visualMap: {
     left: string
@@ -55,12 +65,19 @@ interface EChartsOption {
       }
     }
     data: MapDataItem[]
+    selectedMode?: string
+    select?: {
+      itemStyle: {
+        areaColor: string
+      }
+    }
   }>
 }
 
-interface WorldMapProps {
-  selectedCountry: string | null
-  onCountrySelect: (country: string) => void
+interface ClickEventParams {
+  data: {
+    name: string
+  }
 }
 
 /**
@@ -140,7 +157,7 @@ const WorldMap: React.FC<WorldMapProps> = ({
         },
         tooltip: {
           trigger: 'item',
-          formatter: function (params: any): string {
+          formatter: function (params: TooltipParams): string {
             const data = params.data
             if (!data) return params.name
 
@@ -203,6 +220,12 @@ const WorldMap: React.FC<WorldMapProps> = ({
               },
             },
             data: mapData,
+            selectedMode: 'single',
+            select: {
+              itemStyle: {
+                areaColor: '#7b68ee',
+              },
+            },
           },
         ],
       }
@@ -210,6 +233,29 @@ const WorldMap: React.FC<WorldMapProps> = ({
       setMapOptions(options)
     }
   }, [loading, statsLoading, countryStats])
+
+  // Update selected country when it changes
+  useEffect(() => {
+    if (mapOptions && selectedCountry) {
+      const newOptions = { ...mapOptions }
+      newOptions.series[0].selectedMode = 'single'
+      newOptions.series[0].select = {
+        itemStyle: {
+          areaColor: '#7b68ee',
+        },
+      }
+      setMapOptions(newOptions)
+    }
+  }, [selectedCountry, mapOptions])
+
+  // Handle map click events
+  const onEvents = {
+    click: (params: ClickEventParams) => {
+      if (params.data) {
+        onCountrySelect(params.data.name)
+      }
+    },
+  }
 
   if (loading || statsLoading)
     return <div className="loading">Laddar karta och vindata...</div>
@@ -230,6 +276,7 @@ const WorldMap: React.FC<WorldMapProps> = ({
           option={mapOptions}
           style={{ height: '600px', width: '100%' }}
           opts={{ renderer: 'canvas' }}
+          onEvents={onEvents}
         />
       )}
     </div>

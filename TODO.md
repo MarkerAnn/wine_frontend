@@ -7,6 +7,10 @@ Berätta för användaren vad den ser på kartan. Berätta om minimivärdet
 Cache
 
 Diagram över pris - betyg
-Diagram över PErson som recenserat och dess medelbetyg
+Diagram över Person som recenserat och dess medelbetyg
 Topp 10 viner, betyg eller betyg kontra pris
 Alla viner med namn, land, betyg, pris och privärdigt (betyg kontra pris)
+
+Ändra allt språk till engelska
+Länk till alla viner när listan renderas från heatmap?
+Lista med alla viner när man klickar på ett land?
