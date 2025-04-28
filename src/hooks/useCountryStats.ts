@@ -45,7 +45,7 @@ export const useCountryStats = (
       try {
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
         const response = await axios.get<CountryStatsResponse>(
-          `${apiUrl}/api/stats/countries?min_wines=${minWines}`
+          `${apiUrl}api/stats/countries?min_wines=${minWines}`
         )
 
         setCountryStats(response.data.items)

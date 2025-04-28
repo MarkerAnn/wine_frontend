@@ -143,3 +143,58 @@ export interface FilterOptions {
   }
   vintages: (number | null)[]
 }
+
+// src/types/wine.ts
+
+/**
+ * One entry in the heatmap’s bucket_map.
+ */
+export interface BucketMapItem {
+  /** lower bound of the price range */
+  price_min: number
+  /** upper bound of the price range */
+  price_max: number
+  /** lower bound of the points (rating) range */
+  points_min: number
+  /** upper bound of the points (rating) range */
+  points_max: number
+  /** number of wines in this bucket */
+  count: number
+  /** average price of wines in this bucket */
+  avg_price: number
+  /** human-readable price range, e.g. "$10–20" */
+  price_range: string
+  /** most common varieties in this bucket */
+  top_varieties: Array<{
+    variety: string
+    count: number
+  }>
+  /** sample wines for tooltips or detail views */
+  examples: Array<{
+    name: string
+    price: number
+    points: number
+    winery: string
+  }>
+}
+
+/**
+ * The full heatmap response from the API.
+ * Notice we now reuse BucketMapItem here.
+ */
+export interface HeatmapResponse {
+  data: number[][] // [xIndex, yIndex, count]
+  x_categories: number[] // price buckets
+  y_categories: number[] // points buckets
+  /** lookup table of bucket metadata keyed by `"price_min-points_min"` */
+  bucket_map: Record<string, BucketMapItem>
+  max_count: number
+  total_wines: number
+  bucket_size: { price: number; points: number }
+}
+
+export interface WineScatterPoint {
+  price: number
+  points: number
+  title: string
+}

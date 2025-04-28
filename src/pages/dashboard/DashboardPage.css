@@ -1,4 +1,3 @@
-/* src/pages/Dashboard.css */
 .dashboard-container {
   max-width: 80rem;
   margin-left: auto;
@@ -23,7 +22,7 @@
   padding: 1.5rem;
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-  border: 1px solid rgb(0 0 0 / 0.1);
+  border: 1px solid r;
   margin-top: 1.5rem;
 }
 
@@ -40,7 +39,7 @@
   color: rgb(0 0 0 / 0.7);
 }
 
-/* Nya stilar för att hantera visualiseringsgrid och filter */
+/* New styles for visualizations grid and filters */
 .visualizations-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -88,7 +87,54 @@
   background-color: rgb(var(--wine-200));
 }
 
-/* Responsiv layout för större skärmar */
+/* New styles for bucket detail and wine list sections */
+.bucket-detail-section,
+.wine-list-section {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  border: 1px solid rgb(0 0 0 / 0.1);
+  margin-top: 1.5rem;
+}
+
+.bucket-header,
+.wine-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.show-all-wines-btn,
+.back-to-summary-btn {
+  background-color: rgb(var(--wine-100));
+  color: rgb(var(--wine-800));
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s;
+}
+
+.show-all-wines-btn:hover,
+.back-to-summary-btn:hover {
+  background-color: rgb(var(--wine-200));
+}
+
+.back-to-summary-btn {
+  display: flex;
+  align-items: center;
+}
+
+.back-to-summary-btn::before {
+  content: '←';
+  margin-right: 0.5rem;
+}
+
+/* Responsiv layout for larger screens */
 @media (min-width: 1024px) {
   .visualizations-grid {
     grid-template-columns: 1fr 1fr;

@@ -7,35 +7,53 @@ import type {
   WineFilters,
   WineStats,
   WineListResponse,
+  WineScatterPoint,
   FilterOptions,
+  HeatmapResponse,
 } from '../../types/wine.js'
+import axios from 'axios'
+import type { AxiosError } from 'axios'
 
 // API base URL - should be configured based on environment
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/'
 
 /**
  * Handles API errors and provides consistent error messages
- * @param response - Fetch Response object
+ * @param error - Axios error object
  * @param customMessage - Optional custom error message
  */
-const handleApiError = async (
-  response: Response,
-  customMessage?: string
-): Promise<never> => {
+const handleApiError = (error: unknown, customMessage?: string): never => {
   let errorMessage: string
 
-  try {
-    // Try to get error details from response
-    const errorData = await response.json()
-    errorMessage = errorData.message || errorData.error || response.statusText
-  } catch {
-    // If response is not JSON, use status text
-    errorMessage = response.statusText
+  // Check if error is an AxiosError
+  if ((error as AxiosError).isAxiosError) {
+    const axiosError = error as AxiosError
+    if (axiosError.response) {
+      try {
+        // Try to get error details from response
+        const errorData = axiosError.response.data as {
+          message?: string
+          error?: string
+        }
+        errorMessage =
+          errorData.message || errorData.error || axiosError.response.statusText
+      } catch {
+        // If response data cannot be processed
+        errorMessage = axiosError.response.statusText
+      }
+    } else if (axiosError.request) {
+      // The request was made but no response was received
+      errorMessage = 'No response received from server'
+    } else {
+      // Something happened in setting up the request
+      errorMessage = axiosError.message
+    }
+  } else {
+    // If error is not an AxiosError, use a default error message
+    errorMessage = (error as Error).message || 'Unknown error'
   }
 
-  throw new Error(
-    customMessage || `API error: ${errorMessage} (${response.status})`
-  )
+  throw new Error(customMessage || `API error: ${errorMessage}`)
 }
 
 /**
@@ -44,16 +62,14 @@ const handleApiError = async (
  */
 export const fetchWineStats = async (): Promise<WineStats> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/wines/stats`)
+    const response = await axios.get<WineStats>(
+      `${API_BASE_URL}api/wines/stats`
+    )
 
-    if (!response.ok) {
-      return handleApiError(response, 'Failed to fetch wine statistics')
-    }
-
-    return await response.json()
+    return response.data
   } catch (error) {
     console.error('Error fetching wine stats:', error)
-    throw error
+    throw handleApiError(error, 'Failed to fetch wine statistics')
   }
 }
 
@@ -66,26 +82,25 @@ export const fetchWines = async (
   filters: WineFilters = {}
 ): Promise<WineListResponse> => {
   try {
-    // Convert filters object to URL parameters
-    const params = new URLSearchParams()
+    // Convert filters object to params object
+    // Only include defined values
+    const params: Record<string, string | number | boolean> = {}
 
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
-        params.append(key, String(value))
+        params[key] = value
       }
     })
 
-    const url = `${API_BASE_URL}/wines?${params.toString()}`
-    const response = await fetch(url)
+    const response = await axios.get<WineListResponse>(
+      `${API_BASE_URL}api/wines`,
+      { params }
+    )
 
-    if (!response.ok) {
-      return handleApiError(response, 'Failed to fetch wines')
-    }
-
-    return await response.json()
+    return response.data
   } catch (error) {
     console.error('Error fetching wines:', error)
-    throw error
+    throw handleApiError(error, 'Failed to fetch wines')
   }
 }
 
@@ -96,16 +111,12 @@ export const fetchWines = async (
  */
 export const fetchWineById = async (id: number): Promise<Wine> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/wines/${id}`)
+    const response = await axios.get<Wine>(`${API_BASE_URL}api/wines/${id}`)
 
-    if (!response.ok) {
-      return handleApiError(response, `Failed to fetch wine #${id}`)
-    }
-
-    return await response.json()
+    return response.data
   } catch (error) {
     console.error(`Error fetching wine #${id}:`, error)
-    throw error
+    throw handleApiError(error, `Failed to fetch wine #${id}`)
   }
 }
 
@@ -115,15 +126,73 @@ export const fetchWineById = async (id: number): Promise<Wine> => {
  */
 export const fetchFilterOptions = async (): Promise<FilterOptions> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/wines/filters`)
+    const response = await axios.get<FilterOptions>(
+      `${API_BASE_URL}api/wines/filters`
+    )
 
-    if (!response.ok) {
-      return handleApiError(response, 'Failed to fetch filter options')
-    }
-
-    return await response.json()
+    return response.data
   } catch (error) {
     console.error('Error fetching filter options:', error)
-    throw error
+    throw handleApiError(error, 'Failed to fetch filter options')
   }
+}
+
+/**
+ * Fetches the pre-binned heatmap data for price vs. rating.
+ *
+ * @param priceBucketSize how wide each price bucket is (e.g. 10)
+ * @param pointsBucketSize how tall each points bucket is (e.g. 1)
+ * @param filters optional country/variety/min/max filters
+ */
+export async function fetchHeatmap(params: {
+  priceBucketSize?: number
+  pointsBucketSize?: number
+  country?: string
+  variety?: string
+  minPrice?: number
+  maxPrice?: number
+  minPoints?: number
+  maxPoints?: number
+}): Promise<HeatmapResponse> {
+  try {
+    const response = await axios.get<HeatmapResponse>(
+      `${API_BASE_URL}api/stats/price-rating-heatmap`,
+      {
+        params: {
+          price_bucket_size: params.priceBucketSize,
+          points_bucket_size: params.pointsBucketSize,
+          country: params.country,
+          variety: params.variety,
+          min_price: params.minPrice,
+          max_price: params.maxPrice,
+          min_points: params.minPoints,
+          max_points: params.maxPoints,
+        },
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error('Error fetching heatmap data:', error)
+    throw handleApiError(error, 'Failed to fetch heatmap data')
+  }
+}
+/**
+ * Fetch sample wine data for scatterplot
+ *
+ * @returns {Promise<WineScatterPoint[]>} Array of wine points
+ */
+export const fetchWineScatterData = async (): Promise<WineScatterPoint[]> => {
+  const response = await axios.get<WineScatterPoint[]>(
+    `${API_BASE_URL}api/stats/price-rating`,
+    {
+      params: {
+        page: 1,
+        page_size: 1000,
+      },
+    }
+  )
+
+  console.log('FETCH RESPONSE', response.data)
+
+  return response.data.data // Anpassa beroende på exakt API-svarstruktur
 }

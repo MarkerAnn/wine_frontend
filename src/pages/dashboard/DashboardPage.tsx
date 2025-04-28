@@ -1,29 +1,22 @@
-import { useState, useMemo } from 'react'
+// src/pages/dashboard/DashboardPage.tsx
+
+import React, { useState } from 'react'
 import type { JSX } from 'react'
 import './DashboardPage.css'
-import WorldMap from '../../components/visualizations/worldMap/WorldMap.js'
-import PriceRatingScatter from '../../components/visualizations/priceRatingScatter/PriceRatingScatter.js'
-import { useHeatmapData } from '../../hooks/useHeatmapData.js'
+import WorldMap from '../../components/visualizations/worldMap/WorldMap'
+import WineScatterPlot from '../../components/visualizations/wineScatterPlot/WineScatterPlot.js'
 
-function DashboardPage(): JSX.Element {
+/**
+ * DashboardPage
+ *
+ * This component renders only the world map for wine visualizations.
+ * It manages the selected country state and passes it to the WorldMap.
+ */
+const DashboardPage: React.FC = (): JSX.Element => {
+  // State for selected country
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null)
 
-  // Memoize filters to prevent infinite re-renders
-  const filters = useMemo(
-    () => ({
-      country: selectedCountry || undefined,
-      priceBucketSize: 10, // Default bucket size for price
-      pointsBucketSize: 1, // Default bucket size for points
-    }),
-    [selectedCountry]
-  )
-
-  const {
-    data: priceRatingData,
-    loading: loadingScatter,
-    error,
-  } = useHeatmapData(filters)
-
+  // Handle country selection
   const handleCountrySelect = (country: string) => {
     setSelectedCountry((prev) => (prev === country ? null : country))
   }
@@ -32,22 +25,22 @@ function DashboardPage(): JSX.Element {
     <div className="dashboard-container">
       <h1 className="dashboard-title">Wine Dashboard</h1>
 
+      {/* Show selected country filter */}
       {selectedCountry && (
         <div className="filter-indicator">
-          Showing data for:{' '}
-          <span className="selected-country">{selectedCountry}</span>
+          Showing data for{' '}
+          <strong className="selected-country">{selectedCountry}</strong>
           <button
             className="clear-filter-btn"
             onClick={() => setSelectedCountry(null)}
           >
-            Clear
+            Clear filter
           </button>
         </div>
       )}
 
       <p className="dashboard-intro">
-        Explore our interactive wine database visualizations. Select countries
-        on the map to filter data across all charts.
+        Explore our interactive wine world map. Click a country to filter.
       </p>
 
       <div className="visualizations-grid">
@@ -58,33 +51,13 @@ function DashboardPage(): JSX.Element {
             onCountrySelect={handleCountrySelect}
           />
         </div>
-
         <div className="visualization-card">
-          <h2 className="visualization-title">Price vs. Rating Analysis</h2>
-          <PriceRatingScatter
-            data={priceRatingData}
-            loading={loadingScatter}
-            onPointClick={(bucket) => console.log('Clicked bucket:', bucket)}
-          />
+          <h2 className="visualization-title">Wine Scatterplot</h2>
+          <WineScatterPlot />
         </div>
-      </div>
-
-      {error && (
-        <div className="mt-4 text-center text-red-500 italic">{error}</div>
-      )}
-
-      <div className="visualization-placeholder">
-        <h2 className="visualization-title">More Visualizations Coming Soon</h2>
-        <ul className="visualization-list">
-          <li>Distribution of wines by grape variety</li>
-          <li>Price trend analysis</li>
-          <li>Regional comparisons</li>
-        </ul>
       </div>
     </div>
   )
 }
 
 export default DashboardPage
-
-// TODO: Change text here when done
