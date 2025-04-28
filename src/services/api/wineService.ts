@@ -10,6 +10,7 @@ import type {
   WineScatterPoint,
   FilterOptions,
   HeatmapResponse,
+  BucketWinesResponse,
 } from '../../types/wine.js'
 import axios from 'axios'
 import type { AxiosError } from 'axios'
@@ -195,4 +196,35 @@ export const fetchWineScatterData = async (): Promise<WineScatterPoint[]> => {
   console.log('FETCH RESPONSE', response.data)
 
   return response.data.data // Anpassa beroende på exakt API-svarstruktur
+}
+
+/**
+ * Fetch wines in a specific price/points bucket.
+ *
+ * @param priceMin - Minimum price
+ * @param priceMax - Maximum price
+ * @param pointsMin - Minimum points
+ * @param pointsMax - Maximum points
+ * @param limit - Number of wines to fetch (default 10)
+ */
+export const fetchBucketWines = async (
+  priceMin: number,
+  priceMax: number,
+  pointsMin: number,
+  pointsMax: number,
+  limit = 10,
+  cursor?: string | null
+): Promise<BucketWinesResponse> => {
+  const response = await axios.get(`${API_BASE_URL}api/wines/bucket/`, {
+    params: {
+      price_min: priceMin,
+      price_max: priceMax,
+      points_min: pointsMin,
+      points_max: pointsMax,
+      limit,
+      cursor: cursor ?? undefined, // If cursor is not provided, it will be undefined
+    },
+  })
+
+  return response.data
 }

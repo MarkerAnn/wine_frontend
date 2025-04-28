@@ -258,19 +258,21 @@ const WorldMap: React.FC<WorldMapProps> = ({
   }
 
   if (loading || statsLoading)
-    return <div className="loading">Laddar karta och vindata...</div>
-  if (error)
-    return <div className="error">Fel vid laddning av karta: {error}</div>
+    return <div className="loading">Loading map and data...</div>
+  if (error) return <div className="error">Error loading map: {error}</div>
   if (statsError)
-    return (
-      <div className="error">Fel vid laddning av vindata: {statsError}</div>
-    )
-  if (!mapOptions)
-    return <div className="error">Ingen kartdata tillgänglig</div>
+    return <div className="error">Error loading data: {statsError}</div>
+  if (!mapOptions) return <div className="error">No map data available</div>
 
   return (
     <div className="world-map-container">
-      <h2>Vinproducerande Länder</h2>
+      <h2>Wine Producing Countries</h2>
+      <p style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
+        Choose a country to see more information
+      </p>
+      <p style={{ textAlign: 'center', color: '#888', fontSize: '0.95rem' }}>
+        To make it to the map, the country must have at least 50 wines
+      </p>
       {mapOptions && (
         <ReactECharts
           option={mapOptions}

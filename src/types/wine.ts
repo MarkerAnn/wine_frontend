@@ -198,3 +198,24 @@ export interface WineScatterPoint {
   points: number
   title: string
 }
+
+export interface WineInBucket {
+  id: number
+  name: string
+  winery: string
+  price: number
+  points: number
+  country?: string
+  variety?: string
+}
+
+export interface BucketWinesPagination {
+  next_cursor?: string
+  has_next: boolean
+}
+
+export interface BucketWinesResponse {
+  wines: WineInBucket[]
+  pagination: BucketWinesPagination
+  total: number
+}
