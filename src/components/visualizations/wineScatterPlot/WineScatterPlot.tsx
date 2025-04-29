@@ -6,6 +6,7 @@ import {
   fetchBucketWines,
 } from '../../../services/api/wineService'
 import { WineInBucket, PriceRatingBucket } from '../../../types/wine'
+import WineCard from '../wineCard/WineCard'
 import './WineScatterPlot.css'
 
 const WineScatterPlot: React.FC = () => {
@@ -13,8 +14,6 @@ const WineScatterPlot: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState<number>(1)
-  const [totalLoaded, setTotalLoaded] = useState<number>(0)
-  const [isFetchingMore, setIsFetchingMore] = useState<boolean>(false)
   const [hasMoreData, setHasMoreData] = useState<boolean>(true)
 
   const [bucketWines, setBucketWines] = useState<WineInBucket[]>([])
@@ -31,7 +30,6 @@ const WineScatterPlot: React.FC = () => {
         const result = await fetchWineScatterData(page)
         if (result.length > 0) {
           setData(result)
-          setTotalLoaded(result.length)
           setPage((prev) => prev + 1)
           console.log(`Initial load: ${result.length} wines.`)
         } else {
@@ -51,14 +49,11 @@ const WineScatterPlot: React.FC = () => {
     const fetchMoreData = async () => {
       if (!hasMoreData || loading) return
 
-      setIsFetchingMore(true)
       try {
         const result = await fetchWineScatterData(page)
         if (result.length > 0) {
           setData((prevData) => [...prevData, ...result])
-          setTotalLoaded((prevTotal) => prevTotal + result.length)
           console.log(`Page ${page}: Loaded ${result.length} buckets.`)
-
           setPage((prev) => prev + 1)
         } else {
           console.log('No more wines to load. Finished loading.')
@@ -66,8 +61,6 @@ const WineScatterPlot: React.FC = () => {
         }
       } catch (error) {
         console.error('Failed to load more scatter data', error)
-      } finally {
-        setIsFetchingMore(false)
       }
     }
 
@@ -201,8 +194,8 @@ const WineScatterPlot: React.FC = () => {
   if (error) return <div>Error: {error}</div>
 
   return (
-    <div className="scatterplot-container">
-      <h2>Wine Price vs Rating</h2>
+    <div className="p-4">
+      <h2 className="mb-4 text-2xl font-bold">Wine Price vs Rating</h2>
       <ReactECharts
         option={chartOptions}
         style={{ height: '600px', width: '100%' }}
@@ -228,18 +221,26 @@ const WineScatterPlot: React.FC = () => {
       </div>
 
       {bucketWines.length > 0 && (
-        <div className="bucket-wines">
-          <h3>Wines in Selected Bucket</h3>
-          <ul className="wine-list">
+        <div className="mt-6">
+          <h3 className="mb-4 text-xl font-semibold">
+            Wines in Selected Bucket
+          </h3>
+          <div className="flex flex-col gap-4">
             {bucketWines.map((wine) => (
-              <li key={wine.id} className="wine-item">
-                <strong>{wine.name}</strong>
-                <span>
-                  (${wine.price}) – {wine.points} points – {wine.winery}
-                </span>
-              </li>
+              <WineCard
+                key={wine.id}
+                wine={{
+                  id: wine.id,
+                  title: wine.name,
+                  country: wine.country,
+                  variety: wine.variety,
+                  price: wine.price,
+                  points: wine.points,
+                  winery: wine.winery,
+                }}
+              />
             ))}
-          </ul>
+          </div>
 
           {hasMoreWines && (
             <div className="load-more-container">

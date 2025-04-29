@@ -27,6 +27,9 @@ function Navbar(): JSX.Element {
             <Link to="/dashboard" className="nav-link">
               Dashboard
             </Link>
+            <Link to="/search" className="nav-link">
+              Sök viner
+            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -71,6 +74,9 @@ function Navbar(): JSX.Element {
             </Link>
             <Link to="/dashboard" className="mobile-link">
               Dashboard
+            </Link>
+            <Link to="/search" className="mobile-link">
+              Sök viner
             </Link>
           </div>
         )}

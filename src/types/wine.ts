@@ -147,7 +147,7 @@ export interface FilterOptions {
 // src/types/wine.ts
 
 /**
- * One entry in the heatmap’s bucket_map.
+ * One entry in the heatmap's bucket_map.
  */
 export interface BucketMapItem {
   /** lower bound of the price range */
@@ -264,6 +264,7 @@ export interface WineSearchResult {
   points: number
   country?: string
   variety?: string
+  winery?: string
 }
 
 export interface WineSearchResponse {
