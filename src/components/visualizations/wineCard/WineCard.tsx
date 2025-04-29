@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { WineSearchResult } from '../../../types/wine'
 
 interface WineCardProps {
@@ -6,7 +7,10 @@ interface WineCardProps {
 
 export default function WineCard({ wine }: WineCardProps) {
   return (
-    <div className="rounded border p-4 shadow transition-shadow hover:shadow-lg">
+    <Link
+      to={`/wines/${wine.id}`}
+      className="block rounded border p-4 shadow transition-shadow hover:shadow-lg"
+    >
       <h3 className="text-lg font-bold">{wine.title}</h3>
       <p className="text-gray-600">
         {wine.country ?? 'Unknown country'} —{' '}
@@ -18,6 +22,6 @@ export default function WineCard({ wine }: WineCardProps) {
         </p>
         <p className="text-sm">Points: {wine.points}</p>
       </div>
-    </div>
+    </Link>
   )
 }

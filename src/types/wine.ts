@@ -5,26 +5,45 @@
 /**
  * Represents a wine from the database
  */
+// export interface Wine {
+//   id: number
+//   title: string
+//   description: string
+//   price: number
+//   capacity: number | null
+//   grape: string
+//   secondary_grape_varieties: string | null
+//   closure: string | null
+//   country: string
+//   unit: number | null
+//   characteristics: string | null
+//   per_unit: string | null
+//   type: string
+//   abv: number
+//   region: string | null
+//   style: string
+//   vintage: number | null
+//   appellation: string | null
+//   currency: string
+//   created_at: string
+//   source: string
+// }
+
 export interface Wine {
-  id: number
   title: string
   description: string
+  points: number
   price: number
-  capacity: number | null
-  grape: string
-  secondary_grape_varieties: string | null
-  closure: string | null
   country: string
-  unit: number | null
-  characteristics: string | null
-  per_unit: string | null
-  type: string
-  abv: number
-  region: string | null
-  style: string
-  vintage: number | null
-  appellation: string | null
-  currency: string
+  province: string
+  region_1: string
+  region_2: string
+  designation: string
+  taster_name: string
+  taster_twitter_handle: string
+  variety: string
+  winery: string
+  id: number
   created_at: string
   source: string
 }

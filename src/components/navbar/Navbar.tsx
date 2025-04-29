@@ -22,13 +22,13 @@ function Navbar(): JSX.Element {
           {/* Desktop navigation */}
           <div className="desktop-menu">
             <Link to="/" className="nav-link">
-              Hem
+              Home
             </Link>
             <Link to="/dashboard" className="nav-link">
               Dashboard
             </Link>
             <Link to="/search" className="nav-link">
-              Sök viner
+              Search Wines
             </Link>
           </div>
 
@@ -70,13 +70,13 @@ function Navbar(): JSX.Element {
         {isMenuOpen && (
           <div className="mobile-menu">
             <Link to="/" className="mobile-link">
-              Hem
+              Home
             </Link>
             <Link to="/dashboard" className="mobile-link">
               Dashboard
             </Link>
             <Link to="/search" className="mobile-link">
-              Sök viner
+              Search Wines
             </Link>
           </div>
         )}

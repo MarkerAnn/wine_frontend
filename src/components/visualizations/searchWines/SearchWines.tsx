@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
-import { searchWines } from '../../../services/api/wineService'
+import {
+  searchWines,
+  fetchCountryList,
+} from '../../../services/api/wineService'
 import { WineSearchRequest, WineSearchResult } from '../../../types/wine'
 import WineCard from '../wineCard/WineCard'
 
@@ -20,6 +23,7 @@ export default function SearchWines() {
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState<number>(1)
   const [totalPages, setTotalPages] = useState<number>(1)
+  const [countryList, setCountryList] = useState<string[]>([])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -34,6 +38,8 @@ export default function SearchWines() {
             : value,
     }))
   }
+
+  const [searchHasBeenMade, setSearchHasBeenMade] = useState(false)
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) {
@@ -53,6 +59,7 @@ export default function SearchWines() {
       const response = await searchWines(request)
       setResults(response.items)
       setTotalPages(response.pages)
+      setSearchHasBeenMade(true)
     } catch (err) {
       setError('Failed to fetch wines. Please try again.')
     } finally {
@@ -61,8 +68,23 @@ export default function SearchWines() {
   }
 
   useEffect(() => {
-    handleSubmit()
+    if (searchHasBeenMade) {
+      handleSubmit()
+    }
   }, [page])
+
+  useEffect(() => {
+    const loadCountries = async () => {
+      try {
+        const data = await fetchCountryList()
+        setCountryList(data)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    loadCountries()
+  }, [])
 
   return (
     <div className="p-4">
@@ -79,14 +101,19 @@ export default function SearchWines() {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <input
-            type="text"
+          <select
             name="country"
-            placeholder="Country"
             value={formData.country ?? ''}
             onChange={handleChange}
-            className="rounded border p-2"
-          />
+            className="w-full rounded border p-2"
+          >
+            <option value="">Select country</option>
+            {countryList.map((country) => (
+              <option key={country} value={country}>
+                {country}
+              </option>
+            ))}
+          </select>
           <input
             type="text"
             name="variety"
@@ -123,7 +150,7 @@ export default function SearchWines() {
 
         <button
           type="submit"
-          className="w-full rounded bg-blue-500 p-2 text-white hover:bg-blue-600"
+          className="w-full rounded bg-[rgb(var(--wine-800))] p-2 text-white hover:bg-[rgb(var(--wine-800))/0.8]"
           disabled={loading}
         >
           {loading ? 'Searching...' : 'Search'}

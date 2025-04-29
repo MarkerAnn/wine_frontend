@@ -255,3 +255,18 @@ export const searchWines = async (
     throw handleApiError(error, 'Failed to search wines')
   }
 }
+/**
+ * Fetches the list of available countries
+ * @returns Array of country names
+ */
+export const fetchCountryList = async (): Promise<string[]> => {
+  try {
+    const response = await axios.get<string[]>(
+      `${API_BASE_URL}api/stats/country-list`
+    )
+    return response.data
+  } catch (error) {
+    console.error('Error fetching country list:', error)
+    throw handleApiError(error, 'Failed to fetch country list')
+  }
+}
