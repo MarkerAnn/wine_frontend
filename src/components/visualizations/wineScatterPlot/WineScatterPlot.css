@@ -24,3 +24,63 @@
     transform: rotate(360deg);
   }
 }
+
+.bucket-wines {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.bucket-wines h3 {
+  margin-bottom: 15px;
+  font-size: 20px;
+  color: #333;
+}
+
+.wine-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.wine-item {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+}
+
+.wine-item strong {
+  font-size: 16px;
+  color: #222;
+}
+
+.wine-item span {
+  font-size: 14px;
+  color: #666;
+  margin-top: 2px;
+}
+
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.load-more-button {
+  background-color: #333;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.load-more-button:hover {
+  background-color: #555;
+}

@@ -141,11 +141,12 @@ const WineScatterPlot: React.FC = () => {
     tooltip: {
       trigger: 'item',
       formatter: (params: {
-        data: { title: string; price: number; points: number }
+        data: { title: string; price: number; points: number; count: number }
       }) => `
         <strong>${params.data.title}</strong><br/>
         Price: $${params.data.price}<br/>
-        Points: ${params.data.points}
+        Points: ${params.data.points}<br/>
+        Count: ${params.data.count}
       `,
     },
     xAxis: {
@@ -190,6 +191,7 @@ const WineScatterPlot: React.FC = () => {
           title: `Bucket ${bucket.price_min}-${bucket.price_max} USD, ${bucket.points_min}-${bucket.points_max} points`,
           price: (bucket.price_min + bucket.price_max) / 2,
           points: (bucket.points_min + bucket.points_max) / 2,
+          count: bucket.count,
         })),
       },
     ],
@@ -227,19 +229,24 @@ const WineScatterPlot: React.FC = () => {
 
       {bucketWines.length > 0 && (
         <div className="bucket-wines">
-          <h3>Wines in Selected Area:</h3>
-          <ul>
+          <h3>Wines in Selected Bucket</h3>
+          <ul className="wine-list">
             {bucketWines.map((wine) => (
-              <li key={wine.id}>
-                {wine.name} – {wine.price}$ – {wine.points} points –{' '}
-                {wine.winery}
+              <li key={wine.id} className="wine-item">
+                <strong>{wine.name}</strong>
+                <span>
+                  (${wine.price}) – {wine.points} points – {wine.winery}
+                </span>
               </li>
             ))}
           </ul>
+
           {hasMoreWines && (
-            <button onClick={loadMoreWines} className="load-more-button">
-              Load More Wines
-            </button>
+            <div className="load-more-container">
+              <button onClick={loadMoreWines} className="load-more-button">
+                Next Page
+              </button>
+            </div>
           )}
         </div>
       )}
