@@ -245,3 +245,31 @@ export interface AggregatedPriceRatingResponse {
     points: number
   }
 }
+
+export interface WineSearchRequest {
+  search?: string
+  country?: string
+  variety?: string
+  min_price?: number
+  max_price?: number
+  min_points?: number
+  page: number
+  size: number
+}
+
+export interface WineSearchResult {
+  id: number
+  title: string
+  price?: number
+  points: number
+  country?: string
+  variety?: string
+}
+
+export interface WineSearchResponse {
+  items: WineSearchResult[]
+  total: number
+  page: number
+  size: number
+  pages: number
+}

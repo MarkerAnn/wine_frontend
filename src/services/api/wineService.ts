@@ -12,6 +12,8 @@ import type {
   BucketWinesResponse,
   PriceRatingBucket,
   AggregatedPriceRatingResponse,
+  WineSearchRequest,
+  WineSearchResponse,
 } from '../../types/wine.js'
 import axios from 'axios'
 import type { AxiosError } from 'axios'
@@ -230,4 +232,26 @@ export const fetchBucketWines = async (
   })
 
   return response.data
+}
+
+/**
+ * Searches wines based on search criteria.
+ *
+ * @param searchData - Search parameters (search phrase, country, variety, etc.)
+ * @returns List of wines matching the search criteria
+ */
+export const searchWines = async (
+  searchData: WineSearchRequest
+): Promise<WineSearchResponse> => {
+  try {
+    const response = await axios.post<WineSearchResponse>(
+      `${API_BASE_URL}api/wines/search`,
+      searchData
+    )
+
+    return response.data
+  } catch (error) {
+    console.error('Error searching wines:', error)
+    throw handleApiError(error, 'Failed to search wines')
+  }
 }
