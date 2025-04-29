@@ -1,19 +1,18 @@
 .loading-status {
-  min-height: 60px;
-  margin: 10px 0;
-  font-size: 14px;
   text-align: center;
-  color: #666;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: #555;
 }
 
 .spinner {
   border: 4px solid #f3f3f3;
   border-top: 4px solid #333;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   animation: spin 1s linear infinite;
-  display: inline-block;
+  margin: 0 auto;
 }
 
 @keyframes spin {
@@ -26,57 +25,62 @@
 }
 
 .bucket-wines {
-  margin-top: 30px;
-  padding: 20px;
-  background-color: #fafafa;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  background-color: #fff;
 }
 
 .bucket-wines h3 {
-  margin-bottom: 15px;
-  font-size: 20px;
+  text-align: center;
   color: #333;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  font-size: 1.5rem;
 }
 
 .wine-list {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 1rem 0;
 }
 
 .wine-item {
-  margin-bottom: 10px;
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
   display: flex;
   flex-direction: column;
 }
 
 .wine-item strong {
-  font-size: 16px;
-  color: #222;
+  font-size: 1rem;
+  color: #333;
 }
 
 .wine-item span {
-  font-size: 14px;
-  color: #666;
-  margin-top: 2px;
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 0.5rem;
 }
 
 .load-more-container {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 1.5rem;
 }
 
 .load-more-button {
   background-color: #333;
   color: white;
-  padding: 10px 20px;
+  padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 5px;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
