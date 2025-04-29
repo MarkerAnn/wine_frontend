@@ -219,3 +219,29 @@ export interface BucketWinesResponse {
   pagination: BucketWinesPagination
   total: number
 }
+
+export interface WineExample {
+  name: string
+  price: number
+  points: number
+  winery: string
+}
+
+export interface PriceRatingBucket {
+  price_min: number
+  price_max: number
+  points_min: number
+  points_max: number
+  count: number
+  examples: WineExample[]
+}
+
+export interface AggregatedPriceRatingResponse {
+  buckets: PriceRatingBucket[]
+  total_wines: number
+  total_buckets: number
+  bucket_size: {
+    price: number
+    points: number
+  }
+}

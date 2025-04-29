@@ -5,18 +5,15 @@ import {
   fetchWineScatterData,
   fetchBucketWines,
 } from '../../../services/api/wineService'
-import {
-  WineScatterPoint,
-  BucketWinesResponse,
-  WineInBucket,
-} from '../../../types/wine'
+import { WineInBucket, PriceRatingBucket } from '../../../types/wine'
 import './WineScatterPlot.css'
 
 const WineScatterPlot: React.FC = () => {
-  const [data, setData] = useState<WineScatterPoint[]>([])
+  const [data, setData] = useState<PriceRatingBucket[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState<number>(1)
+  const [totalLoaded, setTotalLoaded] = useState<number>(0)
   const [isFetchingMore, setIsFetchingMore] = useState<boolean>(false)
   const [hasMoreData, setHasMoreData] = useState<boolean>(true)
 
@@ -34,7 +31,9 @@ const WineScatterPlot: React.FC = () => {
         const result = await fetchWineScatterData(page)
         if (result.length > 0) {
           setData(result)
+          setTotalLoaded(result.length)
           setPage((prev) => prev + 1)
+          console.log(`Initial load: ${result.length} wines.`)
         } else {
           setHasMoreData(false)
         }
@@ -57,8 +56,12 @@ const WineScatterPlot: React.FC = () => {
         const result = await fetchWineScatterData(page)
         if (result.length > 0) {
           setData((prevData) => [...prevData, ...result])
+          setTotalLoaded((prevTotal) => prevTotal + result.length)
+          console.log(`Page ${page}: Loaded ${result.length} buckets.`)
+
           setPage((prev) => prev + 1)
         } else {
+          console.log('No more wines to load. Finished loading.')
           setHasMoreData(false)
         }
       } catch (error) {
@@ -68,7 +71,7 @@ const WineScatterPlot: React.FC = () => {
       }
     }
 
-    const interval = setInterval(fetchMoreData, 5000) // var 5:e sekund hämta mer
+    const interval = setInterval(fetchMoreData, 5000) // every 5 seconds
     return () => clearInterval(interval)
   }, [page, hasMoreData, loading])
 
@@ -148,6 +151,8 @@ const WineScatterPlot: React.FC = () => {
     xAxis: {
       name: 'Price (USD)',
       type: 'value',
+      min: 0,
+      max: 500, // Show initial range
     },
     yAxis: {
       name: 'Points',
@@ -155,6 +160,21 @@ const WineScatterPlot: React.FC = () => {
       min: 80,
       max: 100,
     },
+    dataZoom: [
+      {
+        type: 'inside', // allows scrolling with mouse/touch
+        xAxisIndex: 0,
+        start: 0,
+        end: (500 / 3500) * 100, // initial 0–500 of max price 3500
+      },
+      {
+        type: 'slider', // a visible slider at the bottom
+        xAxisIndex: 0,
+        start: 0,
+        end: (500 / 3500) * 100,
+      },
+    ],
+
     series: [
       {
         type: 'scatter',
@@ -162,11 +182,14 @@ const WineScatterPlot: React.FC = () => {
         itemStyle: {
           opacity: 0.3,
         },
-        data: data.map((wine) => ({
-          value: [wine.price, wine.points],
-          title: wine.title,
-          price: wine.price,
-          points: wine.points,
+        data: data.map((bucket) => ({
+          value: [
+            (bucket.price_min + bucket.price_max) / 2,
+            (bucket.points_min + bucket.points_max) / 2,
+          ],
+          title: `Bucket ${bucket.price_min}-${bucket.price_max} USD, ${bucket.points_min}-${bucket.points_max} points`,
+          price: (bucket.price_min + bucket.price_max) / 2,
+          points: (bucket.points_min + bucket.points_max) / 2,
         })),
       },
     ],
@@ -195,10 +218,10 @@ const WineScatterPlot: React.FC = () => {
             }}
           >
             <div className="spinner" />
-            <span>Loading more wines...</span>
+            <span>Loading more buckets..</span>
           </div>
         ) : (
-          <span>All wines loaded.</span>
+          <span>All buckets loaded.</span>
         )}
       </div>
 

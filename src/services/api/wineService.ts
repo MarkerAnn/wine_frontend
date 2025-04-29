@@ -7,10 +7,11 @@ import type {
   WineFilters,
   WineStats,
   WineListResponse,
-  WineScatterPoint,
   FilterOptions,
   HeatmapResponse,
   BucketWinesResponse,
+  PriceRatingBucket,
+  AggregatedPriceRatingResponse,
 } from '../../types/wine.js'
 import axios from 'axios'
 import type { AxiosError } from 'axios'
@@ -182,20 +183,22 @@ export async function fetchHeatmap(params: {
  *
  * @returns {Promise<WineScatterPoint[]>} Array of wine points
  */
-export const fetchWineScatterData = async (): Promise<WineScatterPoint[]> => {
-  const response = await axios.get<WineScatterPoint[]>(
-    `${API_BASE_URL}api/stats/price-rating`,
+export const fetchWineScatterData = async (
+  page: number
+): Promise<PriceRatingBucket[]> => {
+  const response = await axios.get<AggregatedPriceRatingResponse>(
+    `${API_BASE_URL}api/stats/price-rating-aggregated`,
     {
       params: {
-        page: 1,
-        page_size: 1000,
+        page,
+        page_size: 300,
       },
     }
   )
 
   console.log('FETCH RESPONSE', response.data)
 
-  return response.data.data // Anpassa beroende på exakt API-svarstruktur
+  return response.data.buckets
 }
 
 /**
