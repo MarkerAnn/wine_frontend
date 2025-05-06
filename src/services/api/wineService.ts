@@ -8,18 +8,18 @@ import type {
   WineStats,
   WineListResponse,
   FilterOptions,
-  HeatmapResponse,
   BucketWinesResponse,
   PriceRatingBucket,
   AggregatedPriceRatingResponse,
   WineSearchRequest,
   WineSearchResponse,
+  WinesByCountryResponse,
 } from '../../types/wine.js'
 import axios from 'axios'
 import type { AxiosError } from 'axios'
 
 // API base URL - should be configured based on environment
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001/'
 
 /**
  * Handles API errors and provides consistent error messages
@@ -142,45 +142,6 @@ export const fetchFilterOptions = async (): Promise<FilterOptions> => {
 }
 
 /**
- * Fetches the pre-binned heatmap data for price vs. rating.
- *
- * @param priceBucketSize how wide each price bucket is (e.g. 10)
- * @param pointsBucketSize how tall each points bucket is (e.g. 1)
- * @param filters optional country/variety/min/max filters
- */
-export async function fetchHeatmap(params: {
-  priceBucketSize?: number
-  pointsBucketSize?: number
-  country?: string
-  variety?: string
-  minPrice?: number
-  maxPrice?: number
-  minPoints?: number
-  maxPoints?: number
-}): Promise<HeatmapResponse> {
-  try {
-    const response = await axios.get<HeatmapResponse>(
-      `${API_BASE_URL}api/stats/price-rating-heatmap`,
-      {
-        params: {
-          price_bucket_size: params.priceBucketSize,
-          points_bucket_size: params.pointsBucketSize,
-          country: params.country,
-          variety: params.variety,
-          min_price: params.minPrice,
-          max_price: params.maxPrice,
-          min_points: params.minPoints,
-          max_points: params.maxPoints,
-        },
-      }
-    )
-    return response.data
-  } catch (error) {
-    console.error('Error fetching heatmap data:', error)
-    throw handleApiError(error, 'Failed to fetch heatmap data')
-  }
-}
-/**
  * Fetch sample wine data for scatterplot
  *
  * @returns {Promise<WineScatterPoint[]>} Array of wine points
@@ -269,4 +230,29 @@ export const fetchCountryList = async (): Promise<string[]> => {
     console.error('Error fetching country list:', error)
     throw handleApiError(error, 'Failed to fetch country list')
   }
+}
+
+/**
+ * Fetch wines by country (with pagination support)
+ * @param country - Country name
+ * @param limit - Number of wines per page (default: 20)
+ * @param cursor - Pagination cursor (optional)
+ * @returns Wines + pagination info
+ */
+export const fetchWinesByCountry = async (
+  country: string,
+  limit = 10,
+  cursor?: string | null
+): Promise<WinesByCountryResponse> => {
+  const response = await axios.get<WinesByCountryResponse>(
+    `${API_BASE_URL}api/wines/by-country/${encodeURIComponent(country)}`,
+    {
+      params: {
+        limit,
+        cursor: cursor ?? undefined,
+      },
+    }
+  )
+
+  return response.data
 }

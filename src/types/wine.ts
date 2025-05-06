@@ -197,21 +197,6 @@ export interface BucketMapItem {
   }>
 }
 
-/**
- * The full heatmap response from the API.
- * Notice we now reuse BucketMapItem here.
- */
-export interface HeatmapResponse {
-  data: number[][] // [xIndex, yIndex, count]
-  x_categories: number[] // price buckets
-  y_categories: number[] // points buckets
-  /** lookup table of bucket metadata keyed by `"price_min-points_min"` */
-  bucket_map: Record<string, BucketMapItem>
-  max_count: number
-  total_wines: number
-  bucket_size: { price: number; points: number }
-}
-
 export interface WineScatterPoint {
   price: number
   points: number
@@ -292,4 +277,11 @@ export interface WineSearchResponse {
   page: number
   size: number
   pages: number
+}
+
+export interface WinesByCountryResponse {
+  country: string
+  wines: WineSearchResult[]
+  next_cursor: string | null
+  has_next: boolean
 }

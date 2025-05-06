@@ -1,8 +1,10 @@
-// components/WorldMap.tsx
 import React, { useState, useEffect } from 'react'
 import ReactECharts from 'echarts-for-react'
 import * as echarts from 'echarts'
 import { useCountryStats } from '../../../hooks/useCountryStats.js'
+import WineCard from '../wineCard/WineCard'
+import type { WineSearchResult } from '../../../types/wine.js'
+import { fetchWinesByCountry } from '../../../services/api/wineService.js'
 import './WorldMap.css'
 
 // Define interfaces for ECharts options
@@ -86,10 +88,7 @@ interface ClickEventParams {
  *
  * @returns {JSX.Element} The WorldMap component
  */
-const WorldMap: React.FC<WorldMapProps> = ({
-  selectedCountry,
-  onCountrySelect,
-}) => {
+const WorldMap: React.FC<WorldMapProps> = ({ onCountrySelect }) => {
   // Initialize mapOptions as null with proper type
   const [mapOptions, setMapOptions] = useState<EChartsOption | null>(null)
   // Use our custom hook to fetch country stats
@@ -100,6 +99,12 @@ const WorldMap: React.FC<WorldMapProps> = ({
   } = useCountryStats()
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [countryWines, setCountryWines] = useState<WineSearchResult[]>([])
+  const [cursor, setCursor] = useState<string | null>(null)
+  const [hasMoreWines, setHasMoreWines] = useState<boolean>(false)
+  const [selectedCountryName, setSelectedCountryName] = useState<string | null>(
+    null
+  )
 
   // Load the GeoJSON data on component mount and register the map
   useEffect(() => {
@@ -234,27 +239,37 @@ const WorldMap: React.FC<WorldMapProps> = ({
     }
   }, [loading, statsLoading, countryStats])
 
-  // Update selected country when it changes
-  useEffect(() => {
-    if (mapOptions && selectedCountry) {
-      const newOptions = { ...mapOptions }
-      newOptions.series[0].selectedMode = 'single'
-      newOptions.series[0].select = {
-        itemStyle: {
-          areaColor: '#7b68ee',
-        },
-      }
-      setMapOptions(newOptions)
-    }
-  }, [selectedCountry, mapOptions])
-
   // Handle map click events
   const onEvents = {
-    click: (params: ClickEventParams) => {
+    click: async (params: ClickEventParams) => {
       if (params.data) {
-        onCountrySelect(params.data.name)
+        const countryName = params.data.name
+        onCountrySelect(countryName)
+        setSelectedCountryName(countryName)
+        setCountryWines([]) // Reset wines on new click
+        setCursor(null)
+        try {
+          const result = await fetchWinesByCountry(countryName, 10)
+          setCountryWines(result.wines)
+          setCursor(result.next_cursor)
+          setHasMoreWines(result.has_next)
+        } catch (err) {
+          console.error('Failed to fetch wines by country:', err)
+        }
       }
     },
+  }
+
+  const loadMoreWines = async (): Promise<void> => {
+    if (!selectedCountryName || !cursor) return
+    try {
+      const result = await fetchWinesByCountry(selectedCountryName, 20, cursor)
+      setCountryWines((prev) => [...prev, ...result.wines])
+      setCursor(result.next_cursor)
+      setHasMoreWines(result.has_next)
+    } catch (err) {
+      console.error('Failed to load more wines:', err)
+    }
   }
 
   if (loading || statsLoading)
@@ -280,6 +295,41 @@ const WorldMap: React.FC<WorldMapProps> = ({
           opts={{ renderer: 'canvas' }}
           onEvents={onEvents}
         />
+      )}
+      {countryWines.length > 0 && (
+        <div className="mt-6">
+          <h3 className="mb-4 text-xl font-semibold">
+            Wines from {selectedCountryName}
+          </h3>
+          <div className="flex flex-col gap-4">
+            {countryWines.map((wine) => (
+              <WineCard
+                key={wine.id}
+                wine={{
+                  id: wine.id,
+                  title: wine.title,
+                  country: wine.country,
+                  variety: wine.variety,
+                  price: wine.price,
+                  points: wine.points,
+                  winery: wine.winery,
+                }}
+              />
+            ))}
+          </div>
+
+          {hasMoreWines && (
+            <div className="load-more-container mt-4">
+              <button
+                onClick={loadMoreWines}
+                type="button"
+                className="load-more-button"
+              >
+                Next Page
+              </button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   )

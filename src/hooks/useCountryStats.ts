@@ -43,7 +43,7 @@ export const useCountryStats = (
   useEffect(() => {
     const fetchCountryStats = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001'
         const response = await axios.get<CountryStatsResponse>(
           `${apiUrl}api/stats/countries?min_wines=${minWines}`
         )
