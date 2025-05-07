@@ -1,21 +1,26 @@
-// components/WineScatterPlot.tsx
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import ReactECharts from 'echarts-for-react'
 import {
   fetchWineScatterData,
   fetchBucketWines,
 } from '../../../services/api/wineService'
-import { WineInBucket, PriceRatingBucket } from '../../../types/wine'
+import { WineInBucket } from '../../../types/wine'
 import WineCard from '../wineCard/WineCard'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import type { WineBucket } from '../../../types/wine'
 import './WineScatterPlot.css'
 
+/**
+ * WineScatterPlot component displays a scatterplot of wine price vs rating.
+ * It uses React Query's useInfiniteQuery to handle paginated data fetching
+ * and caching automatically.
+ *
+ * When a point is clicked, it loads the wines from that bucket.
+ *
+ * @returns {JSX.Element} The WineScatterPlot component
+ */
 const WineScatterPlot: React.FC = () => {
-  const [data, setData] = useState<PriceRatingBucket[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
-  const [page, setPage] = useState<number>(1)
-  const [hasMoreData, setHasMoreData] = useState<boolean>(true)
-
+  // State for wines in the selected bucket
   const [bucketWines, setBucketWines] = useState<WineInBucket[]>([])
   const [priceMin, setPriceMin] = useState<number | null>(null)
   const [priceMax, setPriceMax] = useState<number | null>(null)
@@ -24,50 +29,30 @@ const WineScatterPlot: React.FC = () => {
   const [cursor, setCursor] = useState<string | null>(null)
   const [hasMoreWines, setHasMoreWines] = useState<boolean>(false)
 
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        const result = await fetchWineScatterData(page)
-        if (result.length > 0) {
-          setData(result)
-          setPage((prev) => prev + 1)
-          console.log(`Initial load: ${result.length} wines.`)
-        } else {
-          setHasMoreData(false)
-        }
-      } catch {
-        setError('Failed to load wine scatter data')
-      } finally {
-        setLoading(false)
-      }
-    }
+  // React Query: infinite query to fetch scatterplot data
+  const {
+    data: scatterData,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<WineBucket[]>({
+    queryKey: ['scatterBuckets'],
+    queryFn: ({ pageParam }) => fetchWineScatterData(pageParam as number),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: WineBucket[], allPages: WineBucket[][]) => {
+      // If lastPage is empty, stop fetching more
+      if (lastPage.length === 0) return undefined
+      return allPages.length + 1
+    },
+    refetchInterval: 5000, // automatically refresh every 5 seconds
+  })
 
-    loadInitialData()
-  }, [])
-
-  useEffect(() => {
-    const fetchMoreData = async () => {
-      if (!hasMoreData || loading) return
-
-      try {
-        const result = await fetchWineScatterData(page)
-        if (result.length > 0) {
-          setData((prevData) => [...prevData, ...result])
-          console.log(`Page ${page}: Loaded ${result.length} buckets.`)
-          setPage((prev) => prev + 1)
-        } else {
-          console.log('No more wines to load. Finished loading.')
-          setHasMoreData(false)
-        }
-      } catch (error) {
-        console.error('Failed to load more scatter data', error)
-      }
-    }
-
-    const interval = setInterval(fetchMoreData, 5000) // every 5 seconds
-    return () => clearInterval(interval)
-  }, [page, hasMoreData, loading])
-
+  /**
+   * Handle clicking a point in the scatterplot
+   * Fetch wines in the selected bucket and update state
+   */
   const handlePointClick = async (params: {
     data: { price: number; points: number }
   }) => {
@@ -99,11 +84,14 @@ const WineScatterPlot: React.FC = () => {
       setBucketWines(fetched.wines)
       setCursor(fetched.pagination.next_cursor || null)
       setHasMoreWines(fetched.pagination.has_next)
-    } catch (error) {
-      console.error('Failed to fetch wines for selected bucket', error)
+    } catch (err) {
+      console.error('Failed to fetch wines for selected bucket', err)
     }
   }
 
+  /**
+   * Load more wines within the same bucket when user clicks "Next Page"
+   */
   const loadMoreWines = async () => {
     if (
       priceMin === null ||
@@ -125,11 +113,12 @@ const WineScatterPlot: React.FC = () => {
       setBucketWines((prev) => [...prev, ...fetched.wines])
       setCursor(fetched.pagination.next_cursor || null)
       setHasMoreWines(fetched.pagination.has_next)
-    } catch (error) {
-      console.error('Failed to load more wines', error)
+    } catch (err) {
+      console.error('Failed to load more wines', err)
     }
   }
 
+  // Prepare chart options for ECharts
   const chartOptions = {
     tooltip: {
       trigger: 'item',
@@ -146,7 +135,7 @@ const WineScatterPlot: React.FC = () => {
       name: 'Price (USD)',
       type: 'value',
       min: 0,
-      max: 500, // Show initial range
+      max: 500, // Initial range
     },
     yAxis: {
       name: 'Points',
@@ -159,16 +148,15 @@ const WineScatterPlot: React.FC = () => {
         type: 'inside', // allows scrolling with mouse/touch
         xAxisIndex: 0,
         start: 0,
-        end: (500 / 3500) * 100, // initial 0–500 of max price 3500
+        end: (500 / 3500) * 100,
       },
       {
-        type: 'slider', // a visible slider at the bottom
+        type: 'slider', // visible slider at the bottom
         xAxisIndex: 0,
         start: 0,
         end: (500 / 3500) * 100,
       },
     ],
-
     series: [
       {
         type: 'scatter',
@@ -176,22 +164,24 @@ const WineScatterPlot: React.FC = () => {
         itemStyle: {
           opacity: 0.3,
         },
-        data: data.map((bucket) => ({
-          value: [
-            (bucket.price_min + bucket.price_max) / 2,
-            (bucket.points_min + bucket.points_max) / 2,
-          ],
-          title: `Bucket ${bucket.price_min}-${bucket.price_max} USD, ${bucket.points_min}-${bucket.points_max} points`,
-          price: (bucket.price_min + bucket.price_max) / 2,
-          points: (bucket.points_min + bucket.points_max) / 2,
-          count: bucket.count,
-        })),
+        data:
+          scatterData?.pages.flat().map((bucket: WineBucket) => ({
+            value: [
+              (bucket.price_min + bucket.price_max) / 2,
+              (bucket.points_min + bucket.points_max) / 2,
+            ],
+            title: `Bucket ${bucket.price_min}-${bucket.price_max} USD, ${bucket.points_min}-${bucket.points_max} points`,
+            price: (bucket.price_min + bucket.price_max) / 2,
+            points: (bucket.points_min + bucket.points_max) / 2,
+            count: bucket.count,
+          })) ?? [],
       },
     ],
   }
 
-  if (loading) return <div>Loading scatterplot...</div>
-  if (error) return <div>Error: {error}</div>
+  // Handle loading/error states for the scatterplot
+  if (isLoading) return <div>Loading scatterplot...</div>
+  if (error) return <div>Error: {String(error)}</div>
 
   return (
     <div className="p-4">
@@ -202,24 +192,34 @@ const WineScatterPlot: React.FC = () => {
         onEvents={{ click: handlePointClick }}
       />
 
-      {/* Small status marker, no jumping */}
-      <div className="loading-status">
-        {hasMoreData ? (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
-            <div className="spinner" />
-            <span>Loading more buckets..</span>
-          </div>
+      {/* Bucket loading status */}
+      <div className="loading-status mt-4">
+        {hasNextPage ? (
+          isFetchingNextPage ? (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}
+            >
+              <div className="spinner" />
+              <span>Loading more buckets...</span>
+            </div>
+          ) : (
+            <button
+              onClick={() => fetchNextPage()}
+              className="load-more-button"
+            >
+              Load More Buckets
+            </button>
+          )
         ) : (
           <span>All buckets loaded.</span>
         )}
       </div>
 
+      {/* Wines in the selected bucket */}
       {bucketWines.length > 0 && (
         <div className="mt-6">
           <h3 className="mb-4 text-xl font-semibold">
@@ -243,8 +243,12 @@ const WineScatterPlot: React.FC = () => {
           </div>
 
           {hasMoreWines && (
-            <div className="load-more-container">
-              <button onClick={loadMoreWines} className="load-more-button">
+            <div className="load-more-container mt-4">
+              <button
+                onClick={loadMoreWines}
+                type="button"
+                className="load-more-button"
+              >
                 Next Page
               </button>
             </div>

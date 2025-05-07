@@ -250,6 +250,14 @@ export interface AggregatedPriceRatingResponse {
   }
 }
 
+export interface WineBucket {
+  price_min: number
+  price_max: number
+  points_min: number
+  points_max: number
+  count: number
+}
+
 export interface WineSearchRequest {
   search?: string
   country?: string
@@ -284,4 +292,26 @@ export interface WinesByCountryResponse {
   wines: WineSearchResult[]
   next_cursor: string | null
   has_next: boolean
+}
+
+export interface VarietyInfo {
+  name: string
+  count: number
+  percentage: number
+}
+
+export interface CountryStats {
+  country: string
+  avg_points: number
+  count: number
+  min_price: number | null
+  max_price: number | null
+  avg_price: number | null
+  top_varieties: VarietyInfo[]
+  original_country: string
+}
+
+export interface CountryStatsResponse {
+  items: CountryStats[]
+  total_countries: number
 }

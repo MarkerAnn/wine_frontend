@@ -1,34 +1,39 @@
-import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { fetchWineById } from '../../../services/api/wineService'
-import { Wine } from '../../../types/wine'
+import type { Wine } from '../../../types/wine'
+import { useQuery } from '@tanstack/react-query'
 
+/**
+ * WineDetails component fetches and displays details of a single wine.
+ * Uses React Query to fetch wine data based on the wine ID from URL params.
+ *
+ * @returns {JSX.Element} The WineDetails component
+ */
 export default function WineDetails() {
+  // Get the wine ID from URL params
   const { id } = useParams<{ id: string }>()
-  const [wine, setWine] = useState<Wine | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchWine = async () => {
-      setLoading(true)
-      try {
-        const data = await fetchWineById(Number(id))
-        setWine(data)
-      } catch (err) {
-        setError('Failed to load wine details')
-      } finally {
-        setLoading(false)
-      }
-    }
+  // Use React Query to fetch the wine data
+  const {
+    data: wine,
+    isLoading,
+    error,
+  } = useQuery<Wine>({
+    queryKey: ['wine', id],
+    queryFn: () => fetchWineById(Number(id)),
+    enabled: !!id, // only run if id is defined
+  })
 
-    fetchWine()
-  }, [id])
+  // Loading state
+  if (isLoading) return <p>Loading...</p>
 
-  if (loading) return <p>Loading...</p>
-  if (error) return <p className="text-red-500">{error}</p>
+  // Error state
+  if (error) return <p className="text-red-500">Failed to load wine details.</p>
+
+  // If no wine found
   if (!wine) return <p>No wine found.</p>
 
+  // Render wine details
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold">{wine.title}</h1>

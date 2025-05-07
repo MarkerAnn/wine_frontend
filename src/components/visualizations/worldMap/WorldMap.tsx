@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react'
 import ReactECharts from 'echarts-for-react'
 import * as echarts from 'echarts'
-import { useCountryStats } from '../../../hooks/useCountryStats.js'
 import WineCard from '../wineCard/WineCard'
-import type { WineSearchResult } from '../../../types/wine.js'
-import { fetchWinesByCountry } from '../../../services/api/wineService.js'
+import type {
+  WineSearchResult,
+  CountryStats,
+  CountryStatsResponse,
+} from '../../../types/wine.js'
+import {
+  fetchWinesByCountry,
+  fetchCountryStats,
+} from '../../../services/api/wineService.js'
+import { useQuery } from '@tanstack/react-query'
 import './WorldMap.css'
 
-// Define interfaces for ECharts options
+// Interface for map data used by ECharts
 interface MapDataItem {
   name: string
   value: number
@@ -20,16 +27,19 @@ interface MapDataItem {
   }>
 }
 
+// Tooltip params structure for ECharts
 interface TooltipParams {
   name: string
   data: MapDataItem
 }
 
+// Props expected by the WorldMap component
 interface WorldMapProps {
   selectedCountry: string | null
   onCountrySelect: (country: string) => void
 }
 
+// Interface for ECharts map options
 interface EChartsOption {
   backgroundColor: string
   title?: {
@@ -76,6 +86,7 @@ interface EChartsOption {
   }>
 }
 
+// Params for click event from ECharts
 interface ClickEventParams {
   data: {
     name: string
@@ -89,16 +100,24 @@ interface ClickEventParams {
  * @returns {JSX.Element} The WorldMap component
  */
 const WorldMap: React.FC<WorldMapProps> = ({ onCountrySelect }) => {
-  // Initialize mapOptions as null with proper type
+  // State for holding ECharts map options
   const [mapOptions, setMapOptions] = useState<EChartsOption | null>(null)
-  // Use our custom hook to fetch country stats
+
+  // React Query to fetch country statistics
   const {
-    countryStats,
-    loading: statsLoading,
+    data: countryStatsResponse,
+    isLoading: statsLoading,
     error: statsError,
-  } = useCountryStats()
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
+  } = useQuery<CountryStatsResponse>({
+    queryKey: ['countryStats'],
+    queryFn: () => fetchCountryStats(),
+  })
+
+  // State for GeoJSON (map shape) loading/error
+  const [geoJsonLoading, setGeoJsonLoading] = useState<boolean>(true)
+  const [geoJsonError, setGeoJsonError] = useState<string | null>(null)
+
+  // State for wine data when a country is clicked
   const [countryWines, setCountryWines] = useState<WineSearchResult[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
   const [hasMoreWines, setHasMoreWines] = useState<boolean>(false)
@@ -106,7 +125,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountrySelect }) => {
     null
   )
 
-  // Load the GeoJSON data on component mount and register the map
+  // Fetch and register the GeoJSON map on component mount
   useEffect(() => {
     const fetchGeoJSON = async () => {
       try {
@@ -118,39 +137,37 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountrySelect }) => {
 
         const geoJson = await response.json()
 
-        // Register the map with echarts
+        // Register the map with ECharts
         echarts.registerMap('world', geoJson)
-        setLoading(false)
+        setGeoJsonLoading(false)
       } catch (err) {
         console.error('Error fetching GeoJSON:', err)
-        setError(err instanceof Error ? err.message : 'Unknown error')
-        setLoading(false)
+        setGeoJsonError(err instanceof Error ? err.message : 'Unknown error')
+        setGeoJsonLoading(false)
       }
     }
 
     fetchGeoJSON()
-
-    // Cleanup function for when component unmounts
-    return () => {
-      // Instead of unregistering, we can just leave it empty
-      // The registry will be cleared when the page is unloaded
-    }
   }, [])
 
-  // Update chart options when country stats are loaded
+  // Update the chart when both GeoJSON and country stats are loaded
   useEffect(() => {
-    if (!loading && !statsLoading && countryStats.length > 0) {
-      // Prepare data for the map with proper typing
-      const mapData: MapDataItem[] = countryStats.map((country) => ({
-        name: country.country,
-        value: country.avg_points,
-        wineCount: country.count,
-        avgPrice: country.avg_price,
-        varieties: country.top_varieties,
-        originalName: country.original_country,
-      }))
+    const countryStats = countryStatsResponse?.items || []
 
-      // Create map options
+    if (!geoJsonLoading && !statsLoading && countryStats.length > 0) {
+      // Prepare map data for ECharts
+      const mapData: MapDataItem[] = countryStats.map(
+        (country: CountryStats) => ({
+          name: country.country,
+          value: country.avg_points,
+          wineCount: country.count,
+          avgPrice: country.avg_price,
+          varieties: country.top_varieties,
+          originalName: country.original_country,
+        })
+      )
+
+      // Set up ECharts options
       const options: EChartsOption = {
         backgroundColor: '#fff',
         title: {
@@ -166,28 +183,24 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountrySelect }) => {
             const data = params.data
             if (!data) return params.name
 
-            // Create HTML for tooltip with country info and pie chart
+            // Build tooltip content
             let html = `
               <div style="font-weight:bold;margin-bottom:5px">${params.name}</div>`
 
-            // Check if data.value exists before using toFixed
             if (data.value !== undefined && data.value !== null) {
               html += `<div>Average Rating: ${data.value.toFixed(1)}</div>`
             } else {
               html += `<div>Average Rating: No data</div>`
             }
 
-            // Check if wineCount exists
             if (data.wineCount !== undefined) {
               html += `<div>Wine Count: ${data.wineCount}</div>`
             }
 
-            // Check if avgPrice exists before using toFixed
             if (data.avgPrice) {
               html += `<div>Average Price: $${data.avgPrice.toFixed(2)}</div>`
             }
 
-            // Add varieties information if available
             if (data.varieties && data.varieties.length > 0) {
               html += `<div style="margin-top:10px"><b>Top Varieties:</b></div>`
               data.varieties.forEach(
@@ -202,12 +215,12 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountrySelect }) => {
         },
         visualMap: {
           left: 'right',
-          min: 80, // Wines are usually rated from 80-100
+          min: 80,
           max: 95,
           text: ['High Rating', 'Low Rating'],
           calculable: true,
           inRange: {
-            color: ['#f2da87', '#cc4025'], // Yellow to red color range for wine ratings
+            color: ['#f2da87', '#cc4025'],
           },
         },
         series: [
@@ -215,7 +228,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountrySelect }) => {
             name: 'Wine Ratings',
             type: 'map',
             map: 'world',
-            roam: true, // Enable zooming and panning
+            roam: true,
             emphasis: {
               label: {
                 show: true,
@@ -237,7 +250,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountrySelect }) => {
 
       setMapOptions(options)
     }
-  }, [loading, statsLoading, countryStats])
+  }, [geoJsonLoading, statsLoading, countryStatsResponse])
 
   // Handle map click events
   const onEvents = {
@@ -260,6 +273,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountrySelect }) => {
     },
   }
 
+  // Load more wines when the user clicks the "Next Page" button
   const loadMoreWines = async (): Promise<void> => {
     if (!selectedCountryName || !cursor) return
     try {
@@ -272,11 +286,13 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountrySelect }) => {
     }
   }
 
-  if (loading || statsLoading)
+  // Handle loading and error states
+  if (geoJsonLoading || statsLoading)
     return <div className="loading">Loading map and data...</div>
-  if (error) return <div className="error">Error loading map: {error}</div>
+  if (geoJsonError)
+    return <div className="error">Error loading map: {geoJsonError}</div>
   if (statsError)
-    return <div className="error">Error loading data: {statsError}</div>
+    return <div className="error">Error loading data: {String(statsError)}</div>
   if (!mapOptions) return <div className="error">No map data available</div>
 
   return (

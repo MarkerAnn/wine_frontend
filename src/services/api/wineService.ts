@@ -14,6 +14,7 @@ import type {
   WineSearchRequest,
   WineSearchResponse,
   WinesByCountryResponse,
+  CountryStatsResponse,
 } from '../../types/wine.js'
 import axios from 'axios'
 import type { AxiosError } from 'axios'
@@ -256,3 +257,19 @@ export const fetchWinesByCountry = async (
 
   return response.data
 }
+
+/**
+ * Fetches wine country statistics from the API
+ * @param minWines - Minimum number of wines per country to include
+ * @returns Array of CountryStats
+ */
+export const fetchCountryStats = async (
+  minWines = 50
+): Promise<CountryStatsResponse> => {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001'
+  const response = await axios.get<CountryStatsResponse>(
+    `${apiUrl}api/stats/countries?min_wines=${minWines}`
+  )
+  return response.data
+}
+// TODO: Ändra apiUrl
