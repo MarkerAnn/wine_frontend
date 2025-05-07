@@ -5,9 +5,7 @@
 import type {
   Wine,
   WineFilters,
-  WineStats,
   WineListResponse,
-  FilterOptions,
   BucketWinesResponse,
   PriceRatingBucket,
   AggregatedPriceRatingResponse,
@@ -62,23 +60,6 @@ const handleApiError = (error: unknown, customMessage?: string): never => {
 }
 
 /**
- * Fetches wine statistics for the dashboard
- * @returns Wine statistics
- */
-export const fetchWineStats = async (): Promise<WineStats> => {
-  try {
-    const response = await axios.get<WineStats>(
-      `${API_BASE_URL}api/wines/stats`
-    )
-
-    return response.data
-  } catch (error) {
-    console.error('Error fetching wine stats:', error)
-    throw handleApiError(error, 'Failed to fetch wine statistics')
-  }
-}
-
-/**
  * Fetches wines based on provided filters
  * @param filters - Filter criteria (country, type, price range, etc.)
  * @returns List of wines matching the filters and metadata
@@ -126,23 +107,6 @@ export const fetchWineById = async (id: number): Promise<Wine> => {
 }
 
 /**
- * Fetches available filter options (countries, types, etc.)
- * @returns Available filter options
- */
-export const fetchFilterOptions = async (): Promise<FilterOptions> => {
-  try {
-    const response = await axios.get<FilterOptions>(
-      `${API_BASE_URL}api/wines/filters`
-    )
-
-    return response.data
-  } catch (error) {
-    console.error('Error fetching filter options:', error)
-    throw handleApiError(error, 'Failed to fetch filter options')
-  }
-}
-
-/**
  * Fetch sample wine data for scatterplot
  *
  * @returns {Promise<WineScatterPoint[]>} Array of wine points
@@ -150,19 +114,24 @@ export const fetchFilterOptions = async (): Promise<FilterOptions> => {
 export const fetchWineScatterData = async (
   page: number
 ): Promise<PriceRatingBucket[]> => {
-  const response = await axios.get<AggregatedPriceRatingResponse>(
-    `${API_BASE_URL}api/stats/price-rating-aggregated`,
-    {
-      params: {
-        page,
-        page_size: 300,
-      },
-    }
-  )
+  try {
+    const response = await axios.get<AggregatedPriceRatingResponse>(
+      `${API_BASE_URL}api/stats/price-rating-aggregated`,
+      {
+        params: {
+          page,
+          page_size: 300,
+        },
+      }
+    )
 
-  console.log('FETCH RESPONSE', response.data)
+    console.log('FETCH RESPONSE', response.data)
 
-  return response.data.buckets
+    return response.data.buckets
+  } catch (error) {
+    console.error('Error fetching scatter data:', error)
+    throw handleApiError(error, 'Failed to fetch scatter data')
+  }
 }
 
 /**
@@ -182,18 +151,23 @@ export const fetchBucketWines = async (
   limit = 10,
   cursor?: string | null
 ): Promise<BucketWinesResponse> => {
-  const response = await axios.get(`${API_BASE_URL}api/wines/bucket/`, {
-    params: {
-      price_min: priceMin,
-      price_max: priceMax,
-      points_min: pointsMin,
-      points_max: pointsMax,
-      limit,
-      cursor: cursor ?? undefined, // If cursor is not provided, it will be undefined
-    },
-  })
+  try {
+    const response = await axios.get(`${API_BASE_URL}api/wines/bucket/`, {
+      params: {
+        price_min: priceMin,
+        price_max: priceMax,
+        points_min: pointsMin,
+        points_max: pointsMax,
+        limit,
+        cursor: cursor ?? undefined,
+      },
+    })
 
-  return response.data
+    return response.data
+  } catch (error) {
+    console.error('Error fetching bucket wines:', error)
+    throw handleApiError(error, 'Failed to fetch bucket wines')
+  }
 }
 
 /**
@@ -235,6 +209,7 @@ export const fetchCountryList = async (): Promise<string[]> => {
 
 /**
  * Fetch wines by country (with pagination support)
+ *
  * @param country - Country name
  * @param limit - Number of wines per page (default: 20)
  * @param cursor - Pagination cursor (optional)
@@ -245,31 +220,46 @@ export const fetchWinesByCountry = async (
   limit = 10,
   cursor?: string | null
 ): Promise<WinesByCountryResponse> => {
-  const response = await axios.get<WinesByCountryResponse>(
-    `${API_BASE_URL}api/wines/by-country/${encodeURIComponent(country)}`,
-    {
-      params: {
-        limit,
-        cursor: cursor ?? undefined,
-      },
-    }
-  )
+  try {
+    const response = await axios.get<WinesByCountryResponse>(
+      `${API_BASE_URL}api/wines/by-country/${encodeURIComponent(country)}`,
+      {
+        params: {
+          limit,
+          cursor: cursor ?? undefined,
+        },
+      }
+    )
 
-  return response.data
+    return response.data
+  } catch (error) {
+    console.error(`Error fetching wines by country (${country}):`, error)
+    throw handleApiError(error, `Failed to fetch wines for ${country}`)
+  }
 }
 
 /**
  * Fetches wine country statistics from the API
+ *
  * @param minWines - Minimum number of wines per country to include
  * @returns Array of CountryStats
  */
 export const fetchCountryStats = async (
   minWines = 50
 ): Promise<CountryStatsResponse> => {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001'
-  const response = await axios.get<CountryStatsResponse>(
-    `${apiUrl}api/stats/countries?min_wines=${minWines}`
-  )
-  return response.data
+  try {
+    const response = await axios.get<CountryStatsResponse>(
+      `${API_BASE_URL}api/stats/countries`,
+      {
+        params: {
+          min_wines: minWines,
+        },
+      }
+    )
+
+    return response.data
+  } catch (error) {
+    console.error('Error fetching country stats:', error)
+    throw handleApiError(error, 'Failed to fetch country statistics')
+  }
 }
-// TODO: Ändra apiUrl

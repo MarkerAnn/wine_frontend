@@ -1,34 +1,3 @@
-/**
- * Type definitions for wine data
- */
-
-/**
- * Represents a wine from the database
- */
-// export interface Wine {
-//   id: number
-//   title: string
-//   description: string
-//   price: number
-//   capacity: number | null
-//   grape: string
-//   secondary_grape_varieties: string | null
-//   closure: string | null
-//   country: string
-//   unit: number | null
-//   characteristics: string | null
-//   per_unit: string | null
-//   type: string
-//   abv: number
-//   region: string | null
-//   style: string
-//   vintage: number | null
-//   appellation: string | null
-//   currency: string
-//   created_at: string
-//   source: string
-// }
-
 export interface Wine {
   title: string
   description: string
@@ -66,22 +35,6 @@ export interface WineFilters {
   offset?: number
   sort?: string
   order?: 'asc' | 'desc'
-}
-
-/**
- * Statistics about the wine database
- */
-export interface WineStats {
-  totalWines: number
-  countriesCount: number
-  typeCount: number
-  avgPrice: number
-  wineGrowth?: number
-  countryDistribution: CountryDistribution[]
-  typeDistribution: TypeDistribution[]
-  priceRanges: PriceRange[]
-  grapeDistribution: GrapeDistribution[]
-  vintageDistribution: VintageDistribution[]
 }
 
 /**
@@ -142,28 +95,6 @@ export interface WineListResponse {
   page: number
   limit: number
 }
-
-/**
- * Filter options available in the database
- */
-export interface FilterOptions {
-  countries: string[]
-  types: string[]
-  styles: string[]
-  grapes: string[]
-  regions: string[]
-  priceRange: {
-    min: number
-    max: number
-  }
-  abvRange: {
-    min: number
-    max: number
-  }
-  vintages: (number | null)[]
-}
-
-// src/types/wine.ts
 
 /**
  * One entry in the heatmap's bucket_map.
