@@ -11,87 +11,15 @@ import {
   fetchWinesByCountry,
   fetchCountryStats,
 } from '../../../services/api/wineService.js'
+import type {
+  MapDataItem,
+  TooltipParams,
+  WorldMapProps,
+  EChartsOption,
+  ClickEventParams,
+} from '../../../types/worldMap.js'
 import { useQuery } from '@tanstack/react-query'
 import './WorldMap.css'
-
-// Interface for map data used by ECharts
-interface MapDataItem {
-  name: string
-  value: number
-  wineCount: number
-  avgPrice: number | null
-  varieties: Array<{
-    name: string
-    count: number
-    percentage: number
-  }>
-}
-
-// Tooltip params structure for ECharts
-interface TooltipParams {
-  name: string
-  data: MapDataItem
-}
-
-// Props expected by the WorldMap component
-interface WorldMapProps {
-  selectedCountry: string | null
-  onCountrySelect: (country: string) => void
-}
-
-// Interface for ECharts map options
-interface EChartsOption {
-  backgroundColor: string
-  title?: {
-    text: string
-    left: string
-    textStyle: {
-      color: string
-    }
-  }
-  tooltip: {
-    trigger: string
-    formatter: (params: TooltipParams) => string | HTMLElement
-  }
-  visualMap: {
-    left: string
-    min: number
-    max: number
-    text: string[]
-    calculable: boolean
-    inRange: {
-      color: string[]
-    }
-  }
-  series: Array<{
-    name: string
-    type: string
-    map: string
-    roam: boolean
-    emphasis: {
-      label: {
-        show: boolean
-      }
-      itemStyle: {
-        areaColor: string
-      }
-    }
-    data: MapDataItem[]
-    selectedMode?: string
-    select?: {
-      itemStyle: {
-        areaColor: string
-      }
-    }
-  }>
-}
-
-// Params for click event from ECharts
-interface ClickEventParams {
-  data: {
-    name: string
-  }
-}
 
 /**
  * WorldMap component that displays an interactive world map visualization
