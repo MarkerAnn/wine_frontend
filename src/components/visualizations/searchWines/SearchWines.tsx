@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
   searchWines,
   fetchCountryList,
+  fetchVarietyList,
 } from '../../../services/api/wineService'
 import type { WineSearchRequest, WineSearchResponse } from '../../../types/wine'
 import WineCard from '../wineCard/WineCard'
@@ -36,6 +37,16 @@ export default function SearchWines() {
   } = useQuery<string[]>({
     queryKey: ['countryList'],
     queryFn: fetchCountryList,
+  })
+
+  // Fetch variety list using React Query
+  const {
+    data: varietyList = [],
+    isLoading: varietiesLoading,
+    error: varietiesError,
+  } = useQuery<string[]>({
+    queryKey: ['varietyList'],
+    queryFn: fetchVarietyList,
   })
 
   // Search wines using React Query - runs manually when form is submitted
@@ -115,14 +126,20 @@ export default function SearchWines() {
               </option>
             ))}
           </select>
-          <input
-            type="text"
+          <select
             name="variety"
-            placeholder="Variety"
             value={formData.variety ?? ''}
             onChange={handleChange}
-            className="rounded border p-2"
-          />
+            className="w-full rounded border p-2"
+            disabled={varietiesLoading}
+          >
+            <option value="">Select variety</option>
+            {varietyList.map((variety) => (
+              <option key={variety} value={variety}>
+                {variety}
+              </option>
+            ))}
+          </select>
           <input
             type="number"
             name="min_price"
@@ -161,6 +178,9 @@ export default function SearchWines() {
       {/* Errors */}
       {countriesError && (
         <p className="mt-4 text-red-500">Failed to load countries.</p>
+      )}
+      {varietiesError && (
+        <p className="mt-4 text-red-500">Failed to load varieties.</p>
       )}
       {searchError && (
         <p className="mt-4 text-red-500">

@@ -13,6 +13,7 @@ dist-ssr
 *.local
 
 TODO.md
+repomix-output.txt
 
 # Editor directories and files
 .vscode/*

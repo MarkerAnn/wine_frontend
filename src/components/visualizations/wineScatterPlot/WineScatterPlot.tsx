@@ -46,7 +46,6 @@ const WineScatterPlot: React.FC = () => {
       if (lastPage.length === 0) return undefined
       return allPages.length + 1
     },
-    refetchInterval: 5000, // automatically refresh every 5 seconds
   })
 
   /**

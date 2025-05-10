@@ -208,6 +208,22 @@ export const fetchCountryList = async (): Promise<string[]> => {
 }
 
 /**
+ * Fetches the list of available varieties
+ * @returns Array of variety names
+ */
+export const fetchVarietyList = async (): Promise<string[]> => {
+  try {
+    const response = await axios.get<string[]>(
+      `${API_BASE_URL}api/wines/variety-list`
+    )
+    return response.data
+  } catch (error) {
+    console.error('Error fetching variety list:', error)
+    throw handleApiError(error, 'Failed to fetch variety list')
+  }
+}
+
+/**
  * Fetch wines by country (with pagination support)
  *
  * @param country - Country name
