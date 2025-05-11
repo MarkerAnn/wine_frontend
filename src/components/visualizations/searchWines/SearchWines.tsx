@@ -1,273 +1,115 @@
-import { useState } from 'react'
-import {
-  searchWines,
-  fetchCountryList,
-  fetchVarietyList,
-  fetchWineById,
-} from '../../../services/api/wineService'
-import type {
-  WineSearchRequest,
-  WineSearchResponse,
-  Wine,
-} from '../../../types/wine'
-import WineCard from '../wineCard/WineCard'
-import WineModal from '../wineCard/WineModal'
-import { useQuery } from '@tanstack/react-query'
+import { useWineSearch } from '../../../hooks/useWineSearch.js'
+import { useWineFilters } from '../../../hooks/useWineFilters.js'
+import { useWineDetails } from '../../../hooks/useWineDetails.js'
+import { SearchForm } from './SearchForm.js'
+import { SearchResults } from './SearchResults.js'
+import { Pagination } from '../common/Pagination.js'
+import WineModal from '../wineCard/WineModal.js'
+import './SearchWines.css'
 
 /**
- * SearchWines component allows users to search wines with various filters.
- * It uses React Query to handle searching and fetching country list.
- *
- * @returns {JSX.Element} The SearchWines component
+ * Main search component that orchestrates wine searching functionality
+ * Combines search form, results display, and wine details viewing
  */
-export default function SearchWines() {
-  // Form state for search filters
-  const [formData, setFormData] = useState<WineSearchRequest>({
-    search: '',
-    country: '',
-    variety: '',
-    min_price: undefined,
-    max_price: undefined,
-    min_points: undefined,
-    page: 1,
-    size: 20,
-  })
-
-  const [searchHasBeenMade, setSearchHasBeenMade] = useState(false)
-
-  // State for selected wine and loading state
-  const [selectedWine, setSelectedWine] = useState<Wine | null>(null)
-  const [isLoadingWine, setIsLoadingWine] = useState<boolean>(false)
-
-  // Fetch country list using React Query
+export const SearchWines: React.FC = () => {
+  // Custom hooks for different functionalities
   const {
-    data: countryList = [],
-    isLoading: countriesLoading,
-    error: countriesError,
-  } = useQuery<string[]>({
-    queryKey: ['countryList'],
-    queryFn: fetchCountryList,
-  })
-
-  // Fetch variety list using React Query
-  const {
-    data: varietyList = [],
-    isLoading: varietiesLoading,
-    error: varietiesError,
-  } = useQuery<string[]>({
-    queryKey: ['varietyList'],
-    queryFn: fetchVarietyList,
-  })
-
-  // Search wines using React Query - runs manually when form is submitted
-  const {
-    data: searchResult,
-    isLoading: searchLoading,
+    formData,
+    setFormData,
+    searchResult,
+    isLoading: isSearchLoading,
     error: searchError,
-    refetch,
-  } = useQuery<WineSearchResponse>({
-    queryKey: ['searchWines', formData],
-    queryFn: () => searchWines(formData),
-    enabled: false, // we control when the query runs
-  })
+    searchHasBeenMade,
+    handleSearch,
+  } = useWineSearch()
 
-  /**
-   * Handles selecting a wine and fetching its full details
-   *
-   * @param id - Wine ID to fetch
-   */
-  const handleOpenWine = async (id: number) => {
-    try {
-      setIsLoadingWine(true)
-      const wine = await fetchWineById(id)
-      setSelectedWine(wine)
-    } catch (err) {
-      console.error('Failed to fetch wine:', err)
-    } finally {
-      setIsLoadingWine(false)
-    }
-  }
+  const {
+    countries,
+    varieties,
+    isLoading: isFiltersLoading,
+    errors: filterErrors,
+  } = useWineFilters()
+
+  const { selectedWine, isLoadingWine, handleOpenWine, handleCloseWine } =
+    useWineDetails()
 
   // Handle form input changes
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  const handleFormChange = (
+    name: string,
+    value: string | number | undefined
   ) => {
-    const { name, value } = e.target
-
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        value === ''
-          ? undefined
-          : name.includes('price') || name.includes('points')
-            ? Number(value)
-            : value,
+      [name]: value,
       page: 1, // Reset to first page on filter change
     }))
   }
 
-  // Handle form submission
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) {
-      e.preventDefault()
-    }
-    await refetch()
-    setSearchHasBeenMade(true)
-  }
-
   // Handle pagination
-  const handlePageChange = async (newPage: number) => {
+  const handlePageChange = (newPage: number) => {
     setFormData((prev) => ({
       ...prev,
       page: newPage,
     }))
-    await refetch()
+    handleSearch()
   }
 
   return (
-    <div className="p-4">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <input
-            type="text"
-            name="search"
-            placeholder="Search wines..."
-            value={formData.search ?? ''}
-            onChange={handleChange}
-            className="w-full rounded border p-2"
-          />
+    <div className="search-wines-container">
+      <h2 className="search-title">Search Wines</h2>
+
+      {/* Display any filter loading errors */}
+      {(filterErrors.countries || filterErrors.varieties) && (
+        <div className="filter-errors">
+          {filterErrors.countries && (
+            <p>Failed to load countries. Some filters may be unavailable.</p>
+          )}
+          {filterErrors.varieties && (
+            <p>Failed to load varieties. Some filters may be unavailable.</p>
+          )}
         </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <select
-            name="country"
-            value={formData.country ?? ''}
-            onChange={handleChange}
-            className="w-full rounded border p-2"
-            disabled={countriesLoading}
-          >
-            <option value="">Select country</option>
-            {countryList.map((country) => (
-              <option key={country} value={country}>
-                {country}
-              </option>
-            ))}
-          </select>
-          <select
-            name="variety"
-            value={formData.variety ?? ''}
-            onChange={handleChange}
-            className="w-full rounded border p-2"
-            disabled={varietiesLoading}
-          >
-            <option value="">Select variety</option>
-            {varietyList.map((variety) => (
-              <option key={variety} value={variety}>
-                {variety}
-              </option>
-            ))}
-          </select>
-          <input
-            type="number"
-            name="min_price"
-            placeholder="Min Price"
-            value={formData.min_price ?? ''}
-            onChange={handleChange}
-            className="rounded border p-2"
-          />
-          <input
-            type="number"
-            name="max_price"
-            placeholder="Max Price"
-            value={formData.max_price ?? ''}
-            onChange={handleChange}
-            className="rounded border p-2"
-          />
-          <input
-            type="number"
-            name="min_points"
-            placeholder="Min Points"
-            value={formData.min_points ?? ''}
-            onChange={handleChange}
-            className="rounded border p-2"
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="w-full rounded bg-[rgb(var(--wine-800))] p-2 text-white hover:cursor-pointer hover:brightness-90"
-          disabled={searchLoading}
-        >
-          {searchLoading ? 'Searching...' : 'Search'}
-        </button>
-      </form>
-
-      {/* Errors */}
-      {countriesError && (
-        <p className="mt-4 text-red-500">Failed to load countries.</p>
       )}
-      {varietiesError && (
-        <p className="mt-4 text-red-500">Failed to load varieties.</p>
-      )}
-      {searchError && (
-        <p className="mt-4 text-red-500">
-          Failed to fetch wines. Please try again.
-        </p>
-      )}
+
+      {/* Search form */}
+      <SearchForm
+        formData={formData}
+        onChange={handleFormChange}
+        onSubmit={handleSearch}
+        isLoading={isSearchLoading}
+        countries={countries}
+        varieties={varieties}
+        isFiltersLoading={isFiltersLoading}
+      />
 
       {/* Search results */}
-      <div className="mt-6">
-        {(searchResult?.items?.length ?? 0) > 0 ? (
-          <ul className="space-y-2">
-            {searchResult?.items.map((wine) => (
-              <li key={wine.id}>
-                <WineCard wine={wine} onClick={() => handleOpenWine(wine.id)} />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          searchHasBeenMade &&
-          !searchLoading && (
-            <p className="mt-4 text-gray-500">No wines found.</p>
-          )
-        )}
-      </div>
+      <SearchResults
+        items={searchResult?.items ?? []}
+        isLoading={isSearchLoading}
+        error={searchError}
+        searchHasBeenMade={searchHasBeenMade}
+        onWineSelect={handleOpenWine}
+        totalCount={searchResult?.total}
+      />
 
       {/* Pagination */}
-      {searchResult && searchResult.pages > 1 && (
-        <div className="mt-6 flex justify-between">
-          <button
-            type="button"
-            onClick={() => handlePageChange(formData.page - 1)}
-            disabled={formData.page === 1 || searchLoading}
-            className="rounded bg-gray-300 px-4 py-2 disabled:opacity-50"
-          >
-            Previous
-          </button>
-
-          <span className="px-4 py-2">
-            Page {formData.page} of {searchResult.pages}
-          </span>
-          <button
-            type="button"
-            onClick={() => handlePageChange(formData.page + 1)}
-            disabled={formData.page === searchResult.pages || searchLoading}
-            className="rounded bg-gray-300 px-4 py-2 disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+      {searchResult && (
+        <Pagination
+          currentPage={formData.page}
+          totalPages={searchResult.pages}
+          onPageChange={handlePageChange}
+          isLoading={isSearchLoading}
+        />
       )}
 
-      {/* Wine detail modal */}
+      {/* Wine details modal */}
       {selectedWine && (
-        <WineModal wine={selectedWine} onClose={() => setSelectedWine(null)} />
+        <WineModal wine={selectedWine} onClose={handleCloseWine} />
       )}
 
-      {/* Loading indicator for wine details */}
+      {/* Loading overlay for wine details */}
       {isLoadingWine && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/20">
-          <div className="spinner" />
+        <div className="loading-overlay">
+          <div className="loading-spinner" />
         </div>
       )}
     </div>

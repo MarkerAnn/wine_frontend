@@ -7,7 +7,6 @@ import SearchWithRagPage from './pages/SearchWithRagPage.js'
 import Navbar from './components/navbar/Navbar.js'
 import Footer from './components/footer/Footer.js'
 import './App.css'
-import WineDetails from './components/visualizations/wineDetails/WineDetails.js'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 /**
  * Main App component that handles routing and layout

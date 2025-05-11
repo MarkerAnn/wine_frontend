@@ -1,0 +1,43 @@
+.bucket-wines {
+  width: 100%;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  background-color: #fff;
+}
+
+.bucket-wines h3 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  font-size: 1.5rem;
+}
+
+.wine-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.wine-item {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+}
+
+.wine-item strong {
+  font-size: 1rem;
+  color: #333;
+}
+
+.wine-item span {
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 0.5rem;
+}
