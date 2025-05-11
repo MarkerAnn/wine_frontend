@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react'
 import ReactECharts from 'echarts-for-react'
 import * as echarts from 'echarts'
 import WineCard from '../wineCard/WineCard'
+import WineModal from '../wineCard/WineModal'
 import type {
   WineSearchResult,
   CountryStats,
   CountryStatsResponse,
+  Wine,
 } from '../../../types/wine.js'
 import {
   fetchWinesByCountry,
   fetchCountryStats,
+  fetchWineById,
 } from '../../../services/api/wineService.js'
 import type {
   MapDataItem,
@@ -52,6 +55,10 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountrySelect }) => {
   const [selectedCountryName, setSelectedCountryName] = useState<string | null>(
     null
   )
+
+  // State for selected wine and loading state
+  const [selectedWine, setSelectedWine] = useState<Wine | null>(null)
+  const [isLoadingWine, setIsLoadingWine] = useState<boolean>(false)
 
   // Fetch and register the GeoJSON map on component mount
   useEffect(() => {
@@ -214,6 +221,23 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountrySelect }) => {
     }
   }
 
+  /**
+   * Handles selecting a wine and fetching its full details
+   *
+   * @param id - Wine ID to fetch
+   */
+  const handleOpenWine = async (id: number) => {
+    try {
+      setIsLoadingWine(true)
+      const wine = await fetchWineById(id)
+      setSelectedWine(wine)
+    } catch (err) {
+      console.error('Failed to fetch wine:', err)
+    } finally {
+      setIsLoadingWine(false)
+    }
+  }
+
   // Handle loading and error states
   if (geoJsonLoading || statsLoading)
     return <div className="loading">Loading map and data...</div>
@@ -226,10 +250,10 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountrySelect }) => {
   return (
     <div className="world-map-container">
       <h2>Wine Producing Countries</h2>
-      <p style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
+      <p className="mb-2 text-center">
         Choose a country to see more information
       </p>
-      <p style={{ textAlign: 'center', color: '#888', fontSize: '0.95rem' }}>
+      <p className="text-center text-sm text-gray-500">
         To make it to the map, the country must have at least 50 wines
       </p>
       {mapOptions && (
@@ -258,6 +282,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountrySelect }) => {
                   points: wine.points,
                   winery: wine.winery,
                 }}
+                onClick={() => handleOpenWine(wine.id)}
               />
             ))}
           </div>
@@ -273,6 +298,18 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountrySelect }) => {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Wine detail modal */}
+      {selectedWine && (
+        <WineModal wine={selectedWine} onClose={() => setSelectedWine(null)} />
+      )}
+
+      {/* Loading indicator for wine details */}
+      {isLoadingWine && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/20">
+          <div className="spinner" />
         </div>
       )}
     </div>

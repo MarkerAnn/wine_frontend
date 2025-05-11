@@ -96,14 +96,24 @@ export const fetchWines = async (
  * @param id - Wine ID
  * @returns Detailed wine information
  */
+// export const fetchWineById = async (id: number): Promise<Wine> => {
+//   try {
+//     const response = await axios.get<Wine>(`${API_BASE_URL}api/wines/${id}`)
+
+//     return response.data
+//   } catch (error) {
+//     console.error(`Error fetching wine #${id}:`, error)
+//     throw handleApiError(error, `Failed to fetch wine #${id}`)
+//   }
+// }
+
 export const fetchWineById = async (id: number): Promise<Wine> => {
   try {
     const response = await axios.get<Wine>(`${API_BASE_URL}api/wines/${id}`)
-
     return response.data
   } catch (error) {
-    console.error(`Error fetching wine #${id}:`, error)
-    throw handleApiError(error, `Failed to fetch wine #${id}`)
+    console.error(`Error fetching wine with ID ${id}:`, error)
+    throw handleApiError(error, `Failed to fetch wine with ID ${id}`)
   }
 }
 

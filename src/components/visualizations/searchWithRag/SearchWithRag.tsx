@@ -1,24 +1,30 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchRagAnswer } from '../../../services/api/wineService.js'
-import type { RagAnswerResponse } from '../../../types/wine.js'
+import {
+  fetchRagAnswer,
+  fetchWineById,
+} from '../../../services/api/wineService.js'
+import type { RagAnswerResponse, Wine, RagSource } from '../../../types/wine.js'
 import WineCard from '../wineCard/WineCard'
+import WineModal from '../wineCard/WineModal.js'
 
 /**
- * SearchWithRag component allows the user to ask a natural language question
- * and receive a generated answer based on wine reviews using RAG (Chroma + LLM).
+ * SearchWithRag component provides a natural language interface to search
+ * wine information using Retrieval Augmented Generation.
  *
- * The result is cached using React Query so that the answer persists if the user
- * navigates away and then returns (e.g., using browser back button).
+ * @returns {JSX.Element} The SearchWithRag component
  */
 export default function SearchWithRag() {
-  const [query, setQuery] = useState('') // user input
-  const [querySubmitted, setQuerySubmitted] = useState(false) // track if a search was made
-  const [cachedData, setCachedData] = useState<RagAnswerResponse | null>(null) // fallback cache
+  // State for search query and results
+  const [query, setQuery] = useState('')
+  const [querySubmitted, setQuerySubmitted] = useState(false)
+  const [selectedWine, setSelectedWine] = useState<Wine | null>(null)
+  const [cachedData, setCachedData] = useState<RagAnswerResponse | null>(null)
+  const [isLoadingWine, setIsLoadingWine] = useState<boolean>(false)
 
   const queryClient = useQueryClient()
 
-  // Mutation handles POST request to /api/search/answer
+  // RAG query mutation using React Query
   const {
     mutate: getRagAnswer,
     data,
@@ -30,13 +36,30 @@ export default function SearchWithRag() {
     mutationFn: () => fetchRagAnswer(query),
     onSuccess: (response) => {
       setQuerySubmitted(true)
-
-      // Manually store the result in React Query's cache
       queryClient.setQueryData(['ragAnswer', query], response)
     },
   })
 
-  // On component mount, check if a previous answer exists in cache
+  /**
+   * Fetch complete wine details when a wine card is clicked
+   *
+   * @param id - Wine ID to fetch (can be number or string)
+   */
+  const handleOpenWine = async (id: number | string) => {
+    try {
+      setIsLoadingWine(true)
+      // Convert string ID to number if needed
+      const numericId = typeof id === 'string' ? parseInt(id, 10) : id
+      const wine = await fetchWineById(numericId)
+      setSelectedWine(wine)
+    } catch (err) {
+      console.error('Failed to fetch wine:', err)
+    } finally {
+      setIsLoadingWine(false)
+    }
+  }
+
+  // Check for cached results on component mount
   useEffect(() => {
     const cached = queryClient.getQueryData<RagAnswerResponse>([
       'ragAnswer',
@@ -46,9 +69,13 @@ export default function SearchWithRag() {
       setCachedData(cached)
       setQuerySubmitted(true)
     }
-  }, [])
+  }, [query, queryClient]) // Added missing dependencies
 
-  // Form submission handler
+  /**
+   * Handle form submission to trigger RAG query
+   *
+   * @param e - Optional form event
+   */
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault()
     if (query.trim()) {
@@ -56,8 +83,24 @@ export default function SearchWithRag() {
     }
   }
 
-  // Use either fresh mutation data or cached fallback
+  // Use data from query or cached results
   const result = data ?? cachedData
+
+  /**
+   * Adapt RagSource to match WineSearchResult format
+   *
+   * @param source - RagSource object to convert
+   */
+  const adaptSourceToWineSearchResult = (source: RagSource) => ({
+    id: typeof source.id === 'string' ? parseInt(source.id, 10) : source.id,
+    title: source.title,
+    country: source.country,
+    variety: source.variety,
+    // Add other required fields with defaults
+    price: undefined,
+    points: undefined,
+    winery: undefined,
+  })
 
   return (
     <div className="p-4">
@@ -70,7 +113,6 @@ export default function SearchWithRag() {
           onChange={(e) => setQuery(e.target.value)}
           className="w-full rounded border p-2"
         />
-
         <button
           type="submit"
           className="w-full rounded bg-[rgb(var(--wine-800))] p-2 text-white hover:cursor-pointer hover:brightness-90"
@@ -80,19 +122,16 @@ export default function SearchWithRag() {
         </button>
       </form>
 
-      {/* Display error if mutation failed */}
       {isError && (
         <p className="mt-4 text-red-500">
           {(error as Error)?.message ?? 'Something went wrong.'}
         </p>
       )}
 
-      {/* No result message */}
       {querySubmitted && !isPending && !result?.answer && (
         <p className="mt-4 text-gray-500">No answer found.</p>
       )}
 
-      {/* Generated answer and wine suggestions */}
       {result?.answer && (
         <div className="mt-6 space-y-6">
           <div className="rounded bg-gray-100 p-4 whitespace-pre-wrap">
@@ -107,12 +146,27 @@ export default function SearchWithRag() {
               <ul className="space-y-2">
                 {result.sources.map((source) => (
                   <li key={source.id}>
-                    <WineCard wine={source} />
+                    <WineCard
+                      wine={adaptSourceToWineSearchResult(source)}
+                      onClick={() => handleOpenWine(source.id)}
+                      showRatingInfo={false}
+                    />
                   </li>
                 ))}
               </ul>
             </div>
           )}
+        </div>
+      )}
+
+      {selectedWine && (
+        <WineModal wine={selectedWine} onClose={() => setSelectedWine(null)} />
+      )}
+
+      {/* Loading indicator for wine details */}
+      {isLoadingWine && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/20">
+          <div className="spinner" />
         </div>
       )}
     </div>

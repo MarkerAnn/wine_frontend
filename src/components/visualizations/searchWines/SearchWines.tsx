@@ -3,9 +3,15 @@ import {
   searchWines,
   fetchCountryList,
   fetchVarietyList,
+  fetchWineById,
 } from '../../../services/api/wineService'
-import type { WineSearchRequest, WineSearchResponse } from '../../../types/wine'
+import type {
+  WineSearchRequest,
+  WineSearchResponse,
+  Wine,
+} from '../../../types/wine'
 import WineCard from '../wineCard/WineCard'
+import WineModal from '../wineCard/WineModal'
 import { useQuery } from '@tanstack/react-query'
 
 /**
@@ -28,6 +34,10 @@ export default function SearchWines() {
   })
 
   const [searchHasBeenMade, setSearchHasBeenMade] = useState(false)
+
+  // State for selected wine and loading state
+  const [selectedWine, setSelectedWine] = useState<Wine | null>(null)
+  const [isLoadingWine, setIsLoadingWine] = useState<boolean>(false)
 
   // Fetch country list using React Query
   const {
@@ -60,6 +70,23 @@ export default function SearchWines() {
     queryFn: () => searchWines(formData),
     enabled: false, // we control when the query runs
   })
+
+  /**
+   * Handles selecting a wine and fetching its full details
+   *
+   * @param id - Wine ID to fetch
+   */
+  const handleOpenWine = async (id: number) => {
+    try {
+      setIsLoadingWine(true)
+      const wine = await fetchWineById(id)
+      setSelectedWine(wine)
+    } catch (err) {
+      console.error('Failed to fetch wine:', err)
+    } finally {
+      setIsLoadingWine(false)
+    }
+  }
 
   // Handle form input changes
   const handleChange = (
@@ -194,7 +221,7 @@ export default function SearchWines() {
           <ul className="space-y-2">
             {searchResult?.items.map((wine) => (
               <li key={wine.id}>
-                <WineCard wine={wine} />
+                <WineCard wine={wine} onClick={() => handleOpenWine(wine.id)} />
               </li>
             ))}
           </ul>
@@ -229,6 +256,18 @@ export default function SearchWines() {
           >
             Next
           </button>
+        </div>
+      )}
+
+      {/* Wine detail modal */}
+      {selectedWine && (
+        <WineModal wine={selectedWine} onClose={() => setSelectedWine(null)} />
+      )}
+
+      {/* Loading indicator for wine details */}
+      {isLoadingWine && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/20">
+          <div className="spinner" />
         </div>
       )}
     </div>

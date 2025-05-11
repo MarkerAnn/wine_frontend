@@ -3,8 +3,10 @@ import ReactECharts from 'echarts-for-react'
 import {
   fetchWineScatterData,
   fetchBucketWines,
+  fetchWineById,
 } from '../../../services/api/wineService'
-import { WineInBucket } from '../../../types/wine'
+import { WineInBucket, Wine } from '../../../types/wine'
+import WineModal from '../wineCard/WineModal'
 import WineCard from '../wineCard/WineCard'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import type { WineBucket } from '../../../types/wine'
@@ -15,12 +17,14 @@ import './WineScatterPlot.css'
  * It uses React Query's useInfiniteQuery to handle paginated data fetching
  * and caching automatically.
  *
- * When a point is clicked, it loads the wines from that bucket.
+ * When a point is clicked, it loads the wines from that bucket and allows
+ * viewing detailed information about individual wines.
  *
  * @returns {JSX.Element} The WineScatterPlot component
  */
 const WineScatterPlot: React.FC = () => {
   // State for wines in the selected bucket
+  const [selectedWine, setSelectedWine] = useState<Wine | null>(null)
   const [bucketWines, setBucketWines] = useState<WineInBucket[]>([])
   const [priceMin, setPriceMin] = useState<number | null>(null)
   const [priceMax, setPriceMax] = useState<number | null>(null)
@@ -28,6 +32,7 @@ const WineScatterPlot: React.FC = () => {
   const [pointsMax, setPointsMax] = useState<number | null>(null)
   const [cursor, setCursor] = useState<string | null>(null)
   const [hasMoreWines, setHasMoreWines] = useState<boolean>(false)
+  const [isLoadingWine, setIsLoadingWine] = useState<boolean>(false)
 
   // React Query: infinite query to fetch scatterplot data
   const {
@@ -51,6 +56,8 @@ const WineScatterPlot: React.FC = () => {
   /**
    * Handle clicking a point in the scatterplot
    * Fetch wines in the selected bucket and update state
+   *
+   * @param params - Click parameters from ECharts
    */
   const handlePointClick = async (params: {
     data: { price: number; points: number }
@@ -114,6 +121,23 @@ const WineScatterPlot: React.FC = () => {
       setHasMoreWines(fetched.pagination.has_next)
     } catch (err) {
       console.error('Failed to load more wines', err)
+    }
+  }
+
+  /**
+   * Handles selecting a wine and fetching its full details
+   *
+   * @param id - Wine ID to fetch
+   */
+  const handleOpenWine = async (id: number) => {
+    try {
+      setIsLoadingWine(true)
+      const wine = await fetchWineById(id)
+      setSelectedWine(wine)
+    } catch (err) {
+      console.error('Failed to fetch wine:', err)
+    } finally {
+      setIsLoadingWine(false)
     }
   }
 
@@ -195,13 +219,7 @@ const WineScatterPlot: React.FC = () => {
       <div className="loading-status mt-4">
         {hasNextPage ? (
           isFetchingNextPage ? (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-              }}
-            >
+            <div className="flex flex-col items-center">
               <div className="spinner" />
               <span>Loading more buckets...</span>
             </div>
@@ -237,6 +255,7 @@ const WineScatterPlot: React.FC = () => {
                   points: wine.points,
                   winery: wine.winery,
                 }}
+                onClick={() => handleOpenWine(wine.id)}
               />
             ))}
           </div>
@@ -252,6 +271,18 @@ const WineScatterPlot: React.FC = () => {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Wine detail modal */}
+      {selectedWine && (
+        <WineModal wine={selectedWine} onClose={() => setSelectedWine(null)} />
+      )}
+
+      {/* Loading indicator for wine details */}
+      {isLoadingWine && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/20">
+          <div className="spinner" />
         </div>
       )}
     </div>

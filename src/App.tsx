@@ -28,7 +28,6 @@ function App(): JSX.Element {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/search-with-rag" element={<SearchWithRagPage />} />
-              <Route path="/wines/:id" element={<WineDetails />} />
             </Routes>
           </main>
           <Footer />
