@@ -30,6 +30,9 @@ function Navbar(): JSX.Element {
             <Link to="/search" className="nav-link">
               Search Wines
             </Link>
+            <Link to="/search-with-rag" className="nav-link">
+              Search with RAG
+            </Link>
           </div>
 
           {/* Mobile menu button */}

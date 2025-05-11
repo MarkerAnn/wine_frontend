@@ -204,7 +204,7 @@ export interface WineSearchResult {
   id: number
   title: string
   price?: number
-  points: number
+  points?: number
   country?: string
   variety?: string
   winery?: string
@@ -245,4 +245,17 @@ export interface CountryStats {
 export interface CountryStatsResponse {
   items: CountryStats[]
   total_countries: number
+}
+
+export type RagSource = {
+  id: number | string
+  title: string
+  country?: string
+  variety?: string
+  description: string
+}
+
+export type RagAnswerResponse = {
+  answer: string
+  sources: RagSource[]
 }

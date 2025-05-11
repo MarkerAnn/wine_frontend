@@ -13,6 +13,7 @@ import type {
   WineSearchResponse,
   WinesByCountryResponse,
   CountryStatsResponse,
+  RagAnswerResponse,
 } from '../../types/wine.js'
 import axios from 'axios'
 import type { AxiosError } from 'axios'
@@ -277,5 +278,26 @@ export const fetchCountryStats = async (
   } catch (error) {
     console.error('Error fetching country stats:', error)
     throw handleApiError(error, 'Failed to fetch country statistics')
+  }
+}
+
+/**
+ * Fetch RAG answer from the API
+ * @param query - Search query
+ * @returns RAG answer
+ */
+export const fetchRagAnswer = async (
+  query: string
+): Promise<RagAnswerResponse> => {
+  try {
+    const response = await axios.post<RagAnswerResponse>(
+      `${API_BASE_URL}api/search/answer`,
+      { query }
+    )
+    console.log('FETCH RESPONSE', response.data)
+    return response.data
+  } catch (error) {
+    console.error('Error fetching RAG answer:', error)
+    throw handleApiError(error, 'Failed to fetch RAG answer')
   }
 }
