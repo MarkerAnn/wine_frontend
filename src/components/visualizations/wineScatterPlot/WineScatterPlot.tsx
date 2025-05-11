@@ -3,7 +3,8 @@ import { useScatterData } from '../../../hooks/useScatterData'
 import { useBucketData } from '../../../hooks/useBucketData'
 import { useWineDetails } from '../../../hooks/useWineDetails'
 import { ScatterPlotChart } from '../charts/ScatterPlotChart'
-import { BucketWinesList } from '../bucketWinelist/BucketWinesList'
+import { WineList } from '../wineList/WineList'
+import { LoadMoreButton } from '../common/loadMoreButton/LoadMoreButton'
 import { LoadingSpinner } from '../common/loadingSpinner/LoadingSpinner'
 import WineModal from '../wineCard/WineModal'
 import './WineScatterPlot.css'
@@ -50,19 +51,23 @@ export const WineScatterPlot = ({ className = '' }: WineScatterPlotProps) => {
     )
   }
 
-  const validBucketRange =
-    bucketRange &&
-    bucketRange.priceMin !== null &&
-    bucketRange.priceMax !== null &&
-    bucketRange.pointsMin !== null &&
-    bucketRange.pointsMax !== null
-      ? {
-          priceMin: bucketRange.priceMin,
-          priceMax: bucketRange.priceMax,
-          pointsMin: bucketRange.pointsMin,
-          pointsMax: bucketRange.pointsMax,
-        }
-      : undefined
+  // Format bucket range for title
+  const getBucketTitle = () => {
+    if (
+      !bucketRange ||
+      bucketRange.priceMin === null ||
+      bucketRange.priceMax === null ||
+      bucketRange.pointsMin === null ||
+      bucketRange.pointsMax === null
+    ) {
+      return undefined
+    }
+
+    return (
+      `Wines $${bucketRange.priceMin}-${bucketRange.priceMax}, ` +
+      `${bucketRange.pointsMin}-${bucketRange.pointsMax} points`
+    )
+  }
 
   return (
     <div className={`wine-scatter-plot ${className}`.trim()}>
@@ -73,25 +78,24 @@ export const WineScatterPlot = ({ className = '' }: WineScatterPlotProps) => {
 
         {hasNextPage && (
           <div className="load-more-container">
-            <button
+            <LoadMoreButton
               onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
-              className="load-more-button"
-            >
-              {isFetchingNextPage ? 'Loading...' : 'Load More Data Points'}
-            </button>
+              isLoading={isFetchingNextPage}
+              text="Load More Data Points"
+              loadingText="Loading Data Points..."
+            />
           </div>
         )}
       </section>
 
       <section className="bucket-section">
-        <BucketWinesList
+        <WineList
           wines={bucketWines}
+          title={getBucketTitle()}
           hasMore={hasMoreWines}
           isLoading={isLoadingWine}
           onLoadMore={loadMoreWines}
           onWineSelect={handleOpenWine}
-          bucketRange={validBucketRange}
         />
       </section>
 

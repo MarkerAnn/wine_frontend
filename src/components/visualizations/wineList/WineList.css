@@ -1,0 +1,51 @@
+/* components/wines/WineList/WineList.css */
+.wine-list-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.wine-list-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.wine-list-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.wine-list-count {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.wine-list-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  margin-bottom: 2rem;
+}
+
+.load-more-section {
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .wine-list-container {
+    padding: 1rem;
+    margin: 1rem auto;
+  }
+
+  .wine-list-grid {
+    gap: 1rem;
+    grid-template-columns: 1fr;
+  }
+}

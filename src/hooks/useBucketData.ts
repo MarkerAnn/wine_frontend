@@ -1,21 +1,20 @@
+// hooks/useBucketData.ts
 import { useState } from 'react'
-import { fetchBucketWines } from '../services/api/wineService.js'
-import type { WineInBucket } from '../types/wine.js'
+import { fetchBucketWines } from '../services/api/wineService'
+import type { WineSearchResult } from '../types/wine'
 
-/**
- * Custom hook for managing wine bucket data and pagination
- * Handles fetching and state management for wines within specific price/points ranges
- */
+interface BucketRange {
+  priceMin: number | null
+  priceMax: number | null
+  pointsMin: number | null
+  pointsMax: number | null
+}
+
 export function useBucketData() {
-  const [bucketWines, setBucketWines] = useState<WineInBucket[]>([])
+  const [bucketWines, setBucketWines] = useState<WineSearchResult[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
-  const [hasMoreWines, setHasMoreWines] = useState<boolean>(false)
-  const [bucketRange, setBucketRange] = useState({
-    priceMin: null as number | null,
-    priceMax: null as number | null,
-    pointsMin: null as number | null,
-    pointsMax: null as number | null,
-  })
+  const [hasMoreWines, setHasMoreWines] = useState(false)
+  const [bucketRange, setBucketRange] = useState<BucketRange | null>(null)
 
   const loadBucketWines = async (price: number, points: number) => {
     const priceRange = 10
@@ -31,21 +30,64 @@ export function useBucketData() {
       pointsMin: minPoints,
       pointsMax: maxPoints,
     })
-    setCursor(null)
 
     try {
-      const response = await fetchBucketWines(
+      const result = await fetchBucketWines(
         minPrice,
         maxPrice,
         minPoints,
         maxPoints,
         10
       )
-      setBucketWines(response.wines)
-      setCursor(response.pagination.next_cursor || null)
-      setHasMoreWines(response.pagination.has_next)
+      setBucketWines(
+        result.wines.map((wine) => ({
+          id: wine.id,
+          title: wine.name,
+          price: wine.price,
+          points: wine.points,
+          country: wine.country,
+          variety: wine.variety,
+          winery: wine.winery,
+        }))
+      )
+      setCursor(result.pagination.next_cursor || null)
+      setHasMoreWines(result.pagination.has_next)
     } catch (err) {
       console.error('Failed to fetch bucket wines:', err)
+      setBucketWines([])
+      setCursor(null)
+      setHasMoreWines(false)
+    }
+  }
+
+  const loadMore = async () => {
+    if (!bucketRange || !cursor) return
+
+    try {
+      const result = await fetchBucketWines(
+        bucketRange.priceMin!,
+        bucketRange.priceMax!,
+        bucketRange.pointsMin!,
+        bucketRange.pointsMax!,
+        10,
+        cursor
+      )
+
+      const newWines = result.wines.map((wine) => ({
+        id: wine.id,
+        title: wine.name,
+        price: wine.price,
+        points: wine.points,
+        country: wine.country,
+        variety: wine.variety,
+        winery: wine.winery,
+      }))
+
+      setBucketWines((prev) => [...prev, ...newWines])
+      setCursor(result.pagination.next_cursor || null)
+      setHasMoreWines(result.pagination.has_next)
+    } catch (err) {
+      console.error('Failed to load more wines:', err)
     }
   }
 
@@ -54,24 +96,6 @@ export function useBucketData() {
     hasMoreWines,
     bucketRange,
     loadBucketWines,
-    loadMore: async () => {
-      if (!bucketRange.priceMin) return
-
-      try {
-        const response = await fetchBucketWines(
-          bucketRange.priceMin,
-          bucketRange.priceMax!,
-          bucketRange.pointsMin!,
-          bucketRange.pointsMax!,
-          10,
-          cursor
-        )
-        setBucketWines((prev) => [...prev, ...response.wines])
-        setCursor(response.pagination.next_cursor || null)
-        setHasMoreWines(response.pagination.has_next)
-      } catch (err) {
-        console.error('Failed to load more wines:', err)
-      }
-    },
+    loadMore,
   }
 }

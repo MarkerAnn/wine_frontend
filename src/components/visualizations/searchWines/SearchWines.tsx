@@ -11,7 +11,7 @@ import './SearchWines.css'
  * Main search component that orchestrates wine searching functionality
  * Combines search form, results display, and wine details viewing
  */
-export const SearchWines: React.FC = () => {
+const SearchWines: React.FC = () => {
   // Custom hooks for different functionalities
   const {
     formData,
@@ -115,3 +115,5 @@ export const SearchWines: React.FC = () => {
     </div>
   )
 }
+
+export default SearchWines
