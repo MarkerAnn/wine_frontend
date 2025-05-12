@@ -248,6 +248,7 @@ export const fetchWinesByCountry = async (
   cursor?: string | null
 ): Promise<WinesByCountryResponse> => {
   try {
+    console.log('FETCHING Wines by country', country)
     const response = await axios.get<WinesByCountryResponse>(
       `${API_BASE_URL}api/wines/by-country/${encodeURIComponent(country)}`,
       {
@@ -258,6 +259,7 @@ export const fetchWinesByCountry = async (
       }
     )
 
+    console.log('FETCH RESPONSE Country', response.data)
     return response.data
   } catch (error) {
     console.error(`Error fetching wines by country (${country}):`, error)

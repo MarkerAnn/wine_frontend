@@ -1,4 +1,3 @@
-// components/visualization/WorldMap/WorldMap.tsx
 import { useWorldMapData } from '../../../hooks/useWorldMapData'
 import { useCountryWines } from '../../../hooks/useCountryWines'
 import { useWineDetails } from '../../../hooks/useWineDetails'
@@ -22,8 +21,7 @@ export const WorldMap = ({
     mapOptions,
     isLoading: isLoadingMap,
     error: mapError,
-    countryStats,
-  } = useWorldMapData()
+  } = useWorldMapData() // Ta bort countryStats eftersom vi inte använder det
 
   const {
     wines: countryWines,

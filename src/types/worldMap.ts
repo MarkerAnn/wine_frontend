@@ -19,8 +19,8 @@ export interface TooltipParams {
 
 // Props expected by the WorldMap component
 export interface WorldMapProps {
-  selectedCountry: string | null
-  onCountrySelect: (country: string) => void
+  onCountrySelect: (countryName: string) => void
+  className?: string
 }
 
 // Interface for ECharts map options

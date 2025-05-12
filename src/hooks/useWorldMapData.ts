@@ -3,7 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import * as echarts from 'echarts'
 import { fetchCountryStats } from '../services/api/wineService'
 import type { CountryStatsResponse, CountryStats } from '../types/wine'
-import type { MapDataItem, EChartsOption } from '../types/worldMap'
+import type {
+  MapDataItem,
+  EChartsOption,
+  TooltipParams,
+} from '../types/worldMap'
 
 /**
  * Creates ECharts options for the world map visualization
@@ -19,6 +23,33 @@ const createMapOptions = (mapData: MapDataItem[]): EChartsOption => ({
   },
   tooltip: {
     trigger: 'item',
+    formatter: (params: TooltipParams): string => {
+      const data = params.data
+      if (!data) return params.name
+
+      let html = `<div style="font-weight:bold;margin-bottom:5px">${params.name}</div>`
+
+      if (data.value !== undefined && data.value !== null) {
+        html += `<div>Average Rating: ${data.value.toFixed(1)}</div>`
+      }
+
+      if (data.wineCount !== undefined) {
+        html += `<div>Wine Count: ${data.wineCount}</div>`
+      }
+
+      if (data.avgPrice) {
+        html += `<div>Average Price: $${data.avgPrice.toFixed(2)}</div>`
+      }
+
+      if (data.varieties && data.varieties.length > 0) {
+        html += `<div style="margin-top:10px"><b>Top Varieties:</b></div>`
+        data.varieties.forEach((v) => {
+          html += `<div>${v.name}: ${v.percentage}%</div>`
+        })
+      }
+
+      return html
+    },
   },
   visualMap: {
     left: 'right',
@@ -71,7 +102,13 @@ export function useWorldMapData() {
     error: statsError,
   } = useQuery<CountryStatsResponse>({
     queryKey: ['countryStats'],
-    queryFn: fetchCountryStats,
+    queryFn: async () => {
+      const response = await fetchCountryStats()
+      if (!response || !response.items) {
+        throw new Error('Invalid response format')
+      }
+      return response
+    },
   })
 
   // Load GeoJSON data
