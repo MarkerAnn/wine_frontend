@@ -1,0 +1,61 @@
+name: Deploy Frontend to VPS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Build project
+        run: npm run build
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add VPS to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            set -e
+            mkdir -p /var/www/wt2-frontend
+            cd /var/www/wt2-frontend
+
+            if [ ! -d ".git" ]; then
+              git init
+              git remote add origin git@github.com:MarkerAnn/wine_frontend.git
+            fi
+
+            git pull origin main
+
+            docker stop wt2-frontend || true
+            docker rm wt2-frontend || true
+
+            docker build -t wt2-frontend .
+            docker run -d --name wt2-frontend \
+              -p 3030:80 \
+              --restart unless-stopped \
+              wt2-frontend
+          EOF

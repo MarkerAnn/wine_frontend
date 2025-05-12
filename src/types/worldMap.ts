@@ -20,6 +20,7 @@ export interface TooltipParams {
 // Props expected by the WorldMap component
 export interface WorldMapProps {
   onCountrySelect: (countryName: string) => void
+  selectedCountry: string | null
   className?: string
 }
 

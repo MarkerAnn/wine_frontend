@@ -14,6 +14,7 @@ import './WorldMap.css'
  */
 export const WorldMap = ({
   onCountrySelect,
+  selectedCountry,
   className = '',
 }: WorldMapProps) => {
   // Custom hooks for data management
@@ -25,7 +26,6 @@ export const WorldMap = ({
 
   const {
     wines: countryWines,
-    selectedCountry,
     hasMore,
     loadCountryWines,
     loadMore,
@@ -65,7 +65,11 @@ export const WorldMap = ({
   return (
     <div className={`world-map ${className}`.trim()}>
       {/* Map Visualization */}
-      <WorldMapChart options={mapOptions} onCountryClick={handleCountryClick} />
+      <WorldMapChart
+        options={mapOptions}
+        onCountryClick={handleCountryClick}
+        selectedCountry={selectedCountry}
+      />
 
       {/* Country Wines List */}
       {countryWines.length > 0 && (

@@ -9,6 +9,7 @@ import './WorldMapChart.css'
 interface WorldMapChartProps {
   options: EChartsOption
   onCountryClick: (countryName: string) => void
+  selectedCountry: string | null
   className?: string
 }
 
@@ -19,6 +20,7 @@ interface WorldMapChartProps {
 export const WorldMapChart = ({
   options,
   onCountryClick,
+  selectedCountry,
   className = '',
 }: WorldMapChartProps) => {
   const createTooltipContent = (params: TooltipParams): string => {
@@ -72,6 +74,15 @@ export const WorldMapChart = ({
       ...options.tooltip,
       formatter: createTooltipContent,
     },
+    series: [
+      {
+        ...options.series[0],
+        data: options.series[0].data.map((item) => ({
+          ...item,
+          selected: item.name === selectedCountry,
+        })),
+      },
+    ],
   }
 
   return (
