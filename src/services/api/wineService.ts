@@ -277,6 +277,7 @@ export const fetchCountryStats = async (
   minWines = 50
 ): Promise<CountryStatsResponse> => {
   try {
+    console.log('FETCHING Country stats')
     const response = await axios.get<CountryStatsResponse>(
       `${API_BASE_URL}api/stats/countries`,
       {
