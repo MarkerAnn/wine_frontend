@@ -1,9 +1,7 @@
-// src/pages/dashboard/DashboardPage.tsx
-
 import React, { useState } from 'react'
 import type { JSX } from 'react'
 import './DashboardPage.css'
-import WorldMap from '../../components/visualizations/worldMap/WorldMap'
+import WorldMap from '../../components/visualizations/worldMap/WorldMap.js'
 import WineScatterPlot from '../../components/visualizations/wineScatterPlot/WineScatterPlot.js'
 
 /**

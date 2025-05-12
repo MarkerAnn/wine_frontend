@@ -1,6 +1,8 @@
-// hooks/useWineFilters.ts
 import { useQuery } from '@tanstack/react-query'
-import { fetchCountryList, fetchVarietyList } from '../services/api/wineService'
+import {
+  fetchCountryList,
+  fetchVarietyList,
+} from '../services/api/wineService.js'
 
 /**
  * Custom hook for managing wine filter options

@@ -1,12 +1,11 @@
-// components/visualization/WineScatterPlot/WineScatterPlot.tsx
-import { useScatterData } from '../../../hooks/useScatterData'
-import { useBucketData } from '../../../hooks/useBucketData'
-import { useWineDetails } from '../../../hooks/useWineDetails'
-import { ScatterPlotChart } from '../charts/ScatterPlotChart'
-import { WineList } from '../wineList/WineList'
-import { LoadMoreButton } from '../common/loadMoreButton/LoadMoreButton'
-import { LoadingSpinner } from '../common/loadingSpinner/LoadingSpinner'
-import WineModal from '../wineCard/WineModal'
+import { useScatterData } from '../../../hooks/useScatterData.js'
+import { useBucketData } from '../../../hooks/useBucketData.js'
+import { useWineDetails } from '../../../hooks/useWineDetails.js'
+import { ScatterPlotChart } from '../charts/ScatterPlotChart.js'
+import { WineList } from '../wineList/WineList.js'
+import { LoadMoreButton } from '../common/loadMoreButton/LoadMoreButton.js'
+import { LoadingSpinner } from '../common/loadingSpinner/LoadingSpinner.js'
+import WineModal from '../wineCard/WineModal.js'
 import './WineScatterPlot.css'
 
 interface WineScatterPlotProps {

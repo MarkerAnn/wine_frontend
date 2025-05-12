@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import * as echarts from 'echarts'
-import { fetchCountryStats } from '../services/api/wineService'
-import type { CountryStatsResponse, CountryStats } from '../types/wine'
+import { fetchCountryStats } from '../services/api/wineService.js'
+import type { CountryStatsResponse, CountryStats } from '../types/wine.js'
 import type {
   MapDataItem,
   EChartsOption,
   TooltipParams,
-} from '../types/worldMap'
+} from '../types/worldMap.js'
 
 /**
  * Creates ECharts options for the world map visualization

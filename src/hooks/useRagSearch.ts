@@ -1,8 +1,7 @@
-// hooks/useRagSearch.ts
 import { useState, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchRagAnswer } from '../services/api/wineService'
-import type { RagAnswerResponse } from '../types/wine'
+import { fetchRagAnswer } from '../services/api/wineService.js'
+import type { RagAnswerResponse } from '../types/wine.js'
 
 /**
  * Custom hook for handling RAG search functionality

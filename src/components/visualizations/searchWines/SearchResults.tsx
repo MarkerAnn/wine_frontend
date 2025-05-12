@@ -1,5 +1,5 @@
-import WineCard from '../wineCard/WineCard'
-import type { WineSearchResult } from '../../../types/wine'
+import WineCard from '../wineCard/WineCard.js'
+import type { WineSearchResult } from '../../../types/wine.js'
 import './SearchResults.css'
 
 interface SearchResultsProps {

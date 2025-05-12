@@ -1,5 +1,5 @@
 import ReactECharts from 'echarts-for-react'
-import type { WineBucket } from '../../../types/wine'
+import type { WineBucket } from '../../../types/wine.js'
 import './ScatterPlotChart.css'
 
 interface ScatterPlotChartProps {

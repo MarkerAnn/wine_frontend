@@ -1,4 +1,4 @@
-import type { WineSearchResult } from '../../../types/wine'
+import type { WineSearchResult } from '../../../types/wine.js'
 
 /**
  * Props interface for the WineCard component

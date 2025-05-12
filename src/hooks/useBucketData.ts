@@ -1,7 +1,6 @@
-// hooks/useBucketData.ts
 import { useState } from 'react'
-import { fetchBucketWines } from '../services/api/wineService'
-import type { WineSearchResult } from '../types/wine'
+import { fetchBucketWines } from '../services/api/wineService.js'
+import type { WineSearchResult } from '../types/wine.js'
 
 interface BucketRange {
   priceMin: number | null

@@ -1,10 +1,10 @@
-import { useRagSearch } from '../../../hooks/useRagSearch'
-import { useWineDetails } from '../../../hooks/useWineDetails'
-import { RagSearchForm } from './RagSearchForm'
-import { WineList } from '../wineList/WineList'
-import { LoadingSpinner } from '../common/loadingSpinner/LoadingSpinner'
-import WineModal from '../wineCard/WineModal'
-import type { RagSource } from '../../../types/wine'
+import { useRagSearch } from '../../../hooks/useRagSearch.js'
+import { useWineDetails } from '../../../hooks/useWineDetails.js'
+import { RagSearchForm } from './RagSearchForm.js'
+import { WineList } from '../wineList/WineList.js'
+import { LoadingSpinner } from '../common/loadingSpinner/LoadingSpinner.js'
+import WineModal from '../wineCard/WineModal.js'
+import type { RagSource } from '../../../types/wine.js'
 import './SearchWithRag.css'
 
 /**

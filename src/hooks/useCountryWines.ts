@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { fetchWinesByCountry } from '../services/api/wineService'
-import type { WineSearchResult } from '../types/wine'
+import { fetchWinesByCountry } from '../services/api/wineService.js'
+import type { WineSearchResult } from '../types/wine.js'
 
 interface CountryWinesState {
   wines: WineSearchResult[]

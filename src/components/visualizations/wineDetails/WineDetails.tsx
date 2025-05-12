@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
-import { fetchWineById } from '../../../services/api/wineService'
-import type { Wine } from '../../../types/wine'
+import { fetchWineById } from '../../../services/api/wineService.js'
+import type { Wine } from '../../../types/wine.js'
 import { useQuery } from '@tanstack/react-query'
 
 /**

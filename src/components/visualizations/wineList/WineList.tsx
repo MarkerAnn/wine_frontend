@@ -1,6 +1,6 @@
-import WineCard from '../wineCard/WineCard'
-import { LoadMoreButton } from '../common/loadMoreButton/LoadMoreButton'
-import type { WineSearchResult } from '../../../types/wine'
+import WineCard from '../wineCard/WineCard.js'
+import { LoadMoreButton } from '../common/loadMoreButton/LoadMoreButton.js'
+import type { WineSearchResult } from '../../../types/wine.js'
 import './WineList.css'
 
 interface WineListProps {

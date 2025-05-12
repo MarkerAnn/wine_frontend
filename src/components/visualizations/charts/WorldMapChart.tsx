@@ -1,10 +1,9 @@
-// components/visualization/WorldMapChart/WorldMapChart.tsx
 import ReactECharts from 'echarts-for-react'
 import type {
   TooltipParams,
   EChartsOption,
   ClickEventParams,
-} from '../../../types/worldMap'
+} from '../../../types/worldMap.js'
 import './WorldMapChart.css'
 
 interface WorldMapChartProps {
