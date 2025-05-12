@@ -115,7 +115,9 @@ export function useWorldMapData() {
   useEffect(() => {
     const fetchGeoJSON = async () => {
       try {
-        const response = await fetch('/data/countries.geo.json')
+        const response = await fetch(
+          import.meta.env.BASE_URL + 'data/countries.geo.json'
+        )
         if (!response.ok) {
           throw new Error(`Failed to fetch GeoJSON: ${response.status}`)
         }

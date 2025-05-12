@@ -17,7 +17,7 @@ function Home(): JSX.Element {
           interactive visualizations.
         </p>
         <img
-          src="/images/barrels_basement.jpg"
+          src={import.meta.env.BASE_URL + 'images/barrels_basement.jpg'}
           alt="Wine barrels in a basement"
           className="hero-image"
         />
