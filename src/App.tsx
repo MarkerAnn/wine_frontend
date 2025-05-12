@@ -18,7 +18,7 @@ const queryClient = new QueryClient()
 function App(): JSX.Element {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
+      <Router basename={import.meta.env.BASE_URL}>
         <div className="app-container">
           <Navbar />
           <main className="main-content">
