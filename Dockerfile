@@ -8,6 +8,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
+# Copy env file separately (outside of Git)
+COPY .env .env
+
 # Copy rest of the app
 COPY . .
 
